@@ -10,23 +10,39 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Costumer {
-  id    Int     @default(autoincrement()) @id
-  table Int
-}
-
-model Product {
-  id            Int      @default(autoincrement()) @id
-  name          String
-  description   String
-  ingredients   String
-  photo         String
-  category      Category? @relation(fields: [categoryId], references: [id])
-  categoryId    Int?
+model Ingredient {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  products    Product[]
 }
 
 model Category {
-  id            Int      @default(autoincrement()) @id
-  name          String
-  products      Product[]
+  id       Int       @id @default(autoincrement())
+  name     String
+  products Product[]
+}
+
+model Product {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String
+  ingredients Ingredient[]
+  photo       String
+  category    Category?    @relation(fields: [categoryId], references: [id])
+  categoryId  Int?
+}
+
+model Table {
+  id      Int   @id @default(autoincrement())
+  order   Order @relation(fields: [orderId], references: [id])
+  orderId Int   @unique
+}
+
+model Order {
+  id         Int       @id @default(autoincrement())
+  createdAt  DateTime  @default(now())
+  finishedAt DateTime?
+  total      Float
+  table      Table?
 }
