@@ -28,7 +28,7 @@ model Product {
   name        String
   description String
   ingredients Ingredient[]
-  imageUrl    String
+  imageUrl       String
   category    Category?    @relation(fields: [categoryId], references: [id])
   categoryId  Int?
 }

@@ -6,5 +6,4 @@
 
 */
 -- AlterTable
-ALTER TABLE `product` DROP COLUMN `photo`,
-    ADD COLUMN `imageUrl` VARCHAR(191) NOT NULL;
+ALTER TABLE `product` RENAME COLUMN `photo` TO `imageUrl`;
