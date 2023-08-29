@@ -12,20 +12,20 @@ datasource db {
 
 model Ingredient {
   id          Int       @id @default(autoincrement())
-  name        String
+  name        String    @unique
   products    Product[]
 }
 
 model Category {
   id       Int       @id @default(autoincrement())
-  name     String
+  name     String    @unique
   products Product[]
 }
 
 model Product {
   id          Int          @id @default(autoincrement())
-  name        String
-  description String
+  name        String       @unique
+  description String?
   ingredients Ingredient[]
   imageUrl       String
   category    Category?    @relation(fields: [categoryId], references: [id])
