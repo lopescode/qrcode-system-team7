@@ -13,7 +13,6 @@ datasource db {
 model Ingredient {
   id          Int       @id @default(autoincrement())
   name        String
-  description String?
   products    Product[]
 }
 
@@ -35,8 +34,9 @@ model Product {
 
 model Table {
   id      Int   @id @default(autoincrement())
-  order   Order @relation(fields: [orderId], references: [id])
-  orderId Int   @unique
+  number  Int   @unique
+  order   Order? @relation(fields: [orderId], references: [id])
+  orderId Int?   @unique
 }
 
 model Order {
