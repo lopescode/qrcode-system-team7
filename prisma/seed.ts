@@ -1,11 +1,11 @@
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
-async function main() {
+async function main (): Promise<void> {
   for (let i = 0; i < 11; i++) {
     await prisma.table.create({
       data: {
-        number: i,
-      },
+        number: i
+      }
     })
   }
 }
