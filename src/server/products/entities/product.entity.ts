@@ -1,5 +1,5 @@
-import { category } from 'src/categories/entity/category.entity'
-import { Ingredient } from 'src/ingredients/entity/ingredient.entity'
+import { category } from '../../categories/entity/category.entity'
+import { Ingredient } from '../../ingredients/entity/ingredient.entity'
 
 export class Product {
   id: number
