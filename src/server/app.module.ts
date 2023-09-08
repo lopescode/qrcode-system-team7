@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common'
+import { RenderModule } from 'nest-next'
+import Next from 'next'
 import { AppController } from './app.controller'
-import { AppService } from './app.service'
 import { ProductsModule } from './products/products.module'
 
 @Module({
-  imports: [ProductsModule],
+  imports: [RenderModule.forRootAsync(Next({})), ProductsModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: []
 })
 export class AppModule {}

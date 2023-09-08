@@ -3,5 +3,5 @@ export class CreateProductDto {
   description?: string
   imageUrl: string
   categoryName: string
-  ingredientsName: string
+  ingredientsName: string[]
 }

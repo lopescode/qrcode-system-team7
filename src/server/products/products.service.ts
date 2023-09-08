@@ -1,17 +1,24 @@
 import { Injectable } from '@nestjs/common'
+import { type Product } from '@prisma/client'
 import { PrismaService } from '../../../prisma/prisma.service'
-import { CreateProductDto } from './dto/create-product.dto'
-import { UpdateProductDto } from './dto/update-product.dto'
+import { type CreateProductDto } from './dto/create-product.dto'
+import { type UpdateProductDto } from './dto/update-product.dto'
 
 @Injectable()
 export class ProductsService {
-  constructor(private prisma: PrismaService) {}
+  constructor (private readonly prisma: PrismaService) {}
 
-  async create({ name, imageUrl, categoryName, ingredientsName, description }: CreateProductDto) {
+  async create ({
+    name,
+    imageUrl,
+    categoryName,
+    ingredientsName,
+    description
+  }: CreateProductDto): Promise<Product> {
     const category = await this.prisma.category.create({
       data: {
-        name: categoryName,
-      },
+        name: categoryName
+      }
     })
 
     const ingredientIds = []
@@ -19,8 +26,8 @@ export class ProductsService {
     for (const ingredient of ingredientsName) {
       const { id } = await this.prisma.ingredient.create({
         data: {
-          name: ingredient,
-        },
+          name: ingredient
+        }
       })
 
       ingredientIds.push(id)
@@ -33,69 +40,68 @@ export class ProductsService {
         category: {
           connectOrCreate: {
             where: {
-              id: category.id,
+              id: category.id
             },
             create: {
-              name: category.name,
-            },
-          },
+              name: category.name
+            }
+          }
         },
         ingredients: {
-          connect: ingredientIds.map(ingredientId => ({ id: ingredientId })),
+          connect: ingredientIds.map((ingredientId) => ({ id: ingredientId }))
         },
-        description,
+        description
       },
       include: {
         category: true,
-        ingredients: true,
-      },
+        ingredients: true
+      }
     })
 
     return product
   }
 
-  async findAll() {
+  async findAll (): Promise<Product[]> {
     return await this.prisma.product.findMany({
       include: {
         category: true,
-        ingredients: true,
-      },
+        ingredients: true
+      }
     })
   }
 
-  async findOne(id: number) {
+  async findOne (id: number): Promise<Product | null> {
     return await this.prisma.product.findFirst({
       where: {
-        id,
+        id
       },
       include: {
         category: true,
-        ingredients: true,
-      },
+        ingredients: true
+      }
     })
   }
 
-  async update(id: number, updateProductDto: UpdateProductDto) {
-    const ingredientIds = []
-
-    if (updateProductDto.ingredientsName) {
-      for (const ingredient of updateProductDto.ingredientsName) {
+  async update (id: number, { ingredientsName }: UpdateProductDto): Promise<Product> {
+    if (ingredientsName) {
+      for (const ingredient of ingredients) {
         const { id } = await this.prisma.ingredient.create({
           data: {
-            name: ingredient,
-          },
+            name: ingredient.name
+          }
         })
 
         ingredientIds.push(id)
       }
     }
+
     let category
 
     if (updateProductDto.categoryName) {
       category = await this.prisma.category.create({
         data: {
-          name: updateProductDto.categoryName,
-        },
+          name: updateProductDto.categoryName
+        }
       })
     }
 
@@ -104,26 +110,26 @@ export class ProductsService {
         description: updateProductDto.description,
         name: updateProductDto.name,
         ingredients: {
-          connect: ingredientIds.map(ingredientId => ({ id: ingredientId })),
+          connect: ingredientIds.map((ingredientId) => ({ id: ingredientId }))
         },
         category: {
           connect: {
-            id: category.id,
-          },
+            id: category?.id
+          }
         },
-        imageUrl: updateProductDto.imageUrl,
+        imageUrl: updateProductDto.imageUrl
       },
       where: {
-        id,
-      },
+        id
+      }
     })
   }
 
-  async remove(id: number) {
+  async remove (id: number): Promise<Product> {
     return await this.prisma.product.delete({
       where: {
-        id,
-      },
+        id
+      }
     })
   }
 }
