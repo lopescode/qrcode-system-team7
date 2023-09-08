@@ -1,7 +1,7 @@
-import { Product } from "src/products/entities/product.entity"
+import { Product } from 'src/products/entities/product.entity'
 
 export class Ingredient {
-    id: number
-    name: string
-    products: Product[]
+  id: number
+  name: string
+  products: Product[]
 }
