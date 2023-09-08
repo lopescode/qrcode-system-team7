@@ -4,16 +4,16 @@ async function main() {
   for (let i = 0; i < 11; i++) {
     await prisma.table.create({
       data: {
-        number: i
-      }
-    }) 
+        number: i,
+      },
+    })
   }
 }
 main()
   .then(async () => {
     await prisma.$disconnect()
   })
-  .catch(async (e) => {
+  .catch(async e => {
     console.error(e)
     await prisma.$disconnect()
     process.exit(1)
