@@ -13,7 +13,11 @@
     "lint": "eslint --ext .js,.jsx,.ts,.tsx . --fix",
     "dev:web": "next dev",
     "dev:server": "nest start --path ./tsconfig.server.json --debug --watch",
-    "prod:server": "node dist/src/server/main"
+    "prod:server": "node dist/src/server/main",
+    "start": "npm run build && npm run prod:server",
+    "migrate:dev": "prisma migrate dev --preview-feature",
+    "migrate:deploy": "prisma migrate deploy --preview-feature",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@nestjs/common": "10.0.0",
@@ -21,7 +25,8 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "10.0.0",
     "@prisma/client": "5.2.0",
-    "nest-next": "10.1.0",
+    "husky": "^8.0.3",
+    "nest-next": "^10.1.0",
     "next": "13.4.19",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -59,7 +64,8 @@
     "ts-loader": "9.4.3",
     "ts-node": "10.9.1",
     "tsconfig-paths": "4.2.0",
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "husky": "^8.0.0"
   },
   "jest": {
     "moduleFileExtensions": [
