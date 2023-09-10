@@ -5,6 +5,7 @@
 - [Nest.js](https://nestjs.com/)
 - [Next.js](https://nextjs.org/)
 - [React.js](https://react.dev/)
+- [ReactIcons](https://react-icons.github.io/react-icons/)
 - [Tailwind](https://tailwindcss.com/)
 - [Prettier](https://prettier.io/)
 - [ESLint](https://eslint.org/)

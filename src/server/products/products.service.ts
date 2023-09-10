@@ -6,19 +6,13 @@ import { type UpdateProductDto } from './dto/update-product.dto'
 
 @Injectable()
 export class ProductsService {
-  constructor (private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create ({
-    name,
-    imageUrl,
-    categoryName,
-    ingredientsName,
-    description
-  }: CreateProductDto): Promise<Product> {
+  async create({ name, imageUrl, categoryName, ingredientsName, description }: CreateProductDto): Promise<Product> {
     const category = await this.prisma.category.create({
       data: {
-        name: categoryName
-      }
+        name: categoryName,
+      },
     })
 
     const ingredientIds = []
@@ -26,8 +20,8 @@ export class ProductsService {
     for (const ingredient of ingredientsName) {
       const { id } = await this.prisma.ingredient.create({
         data: {
-          name: ingredient
-        }
+          name: ingredient,
+        },
       })
 
       ingredientIds.push(id)
@@ -40,55 +34,60 @@ export class ProductsService {
         category: {
           connectOrCreate: {
             where: {
-              id: category.id
+              id: category.id,
             },
             create: {
-              name: category.name
-            }
-          }
+              name: category.name,
+            },
+          },
         },
         ingredients: {
-          connect: ingredientIds.map((ingredientId) => ({ id: ingredientId }))
+          connect: ingredientIds.map(ingredientId => ({ id: ingredientId })),
         },
-        description
+        description,
       },
       include: {
         category: true,
-        ingredients: true
-      }
+        ingredients: true,
+      },
     })
 
     return product
   }
 
-  async findAll (): Promise<Product[]> {
+  async findAll(): Promise<Product[]> {
     return await this.prisma.product.findMany({
       include: {
         category: true,
-        ingredients: true
-      }
+        ingredients: true,
+      },
     })
   }
 
-  async findOne (id: number): Promise<Product | null> {
+  async findOne(id: number): Promise<Product | null> {
     return await this.prisma.product.findFirst({
       where: {
-        id
+        id,
       },
       include: {
         category: true,
-        ingredients: true
-      }
+        ingredients: true,
+      },
     })
   }
 
-  async update (id: number, { ingredientsName }: UpdateProductDto): Promise<Product> {
+  async update(
+    id: number,
+    { ingredientsName, categoryName, description, imageUrl, name }: UpdateProductDto
+  ): Promise<Product> {
+    const ingredientIds = []
+
     if (ingredientsName) {
-      for (const ingredient of ingredients) {
+      for (const ingredient of ingredientsName) {
         const { id } = await this.prisma.ingredient.create({
           data: {
-            name: ingredient.name
-          }
+            name: ingredient,
+          },
         })
 
         ingredientIds.push(id)
@@ -97,39 +96,39 @@ export class ProductsService {
 
     let category
 
-    if (updateProductDto.categoryName) {
+    if (categoryName) {
       category = await this.prisma.category.create({
         data: {
-          name: updateProductDto.categoryName
-        }
+          name: categoryName,
+        },
       })
     }
 
     return await this.prisma.product.update({
       data: {
-        description: updateProductDto.description,
-        name: updateProductDto.name,
+        description,
+        name,
         ingredients: {
-          connect: ingredientIds.map((ingredientId) => ({ id: ingredientId }))
+          connect: ingredientIds.map(ingredientId => ({ id: ingredientId })),
         },
         category: {
           connect: {
-            id: category?.id
-          }
+            id: category?.id,
+          },
         },
-        imageUrl: updateProductDto.imageUrl
+        imageUrl,
       },
       where: {
-        id
-      }
+        id,
+      },
     })
   }
 
-  async remove (id: number): Promise<Product> {
+  async remove(id: number): Promise<Product> {
     return await this.prisma.product.delete({
       where: {
-        id
-      }
+        id,
+      },
     })
   }
 }

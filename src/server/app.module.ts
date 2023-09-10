@@ -7,6 +7,6 @@ import { ProductsModule } from './products/products.module'
 @Module({
   imports: [RenderModule.forRootAsync(Next({})), ProductsModule],
   controllers: [AppController],
-  providers: []
+  providers: [],
 })
 export class AppModule {}
