@@ -3,34 +3,44 @@ import { type Product } from '@prisma/client'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { type CreateProductDto } from './dto/create-product.dto'
 import { type UpdateProductDto } from './dto/update-product.dto'
+import { ProductNotFoundException } from '../exceptions/NotFoundExceptions'
 
 @Injectable()
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create({ name, imageUrl, categoryName, ingredientsName, description }: CreateProductDto): Promise<Product> {
-    const category = await this.prisma.category.create({
-      data: {
+  async create(
+    { name, categoryName, ingredientsName, description }: CreateProductDto,
+    imagePath: string
+  ): Promise<Product> {
+    const category = await this.prisma.category.upsert({
+      create: {
+        name: categoryName,
+      },
+      update: {},
+      where: {
         name: categoryName,
       },
     })
 
-    const ingredientIds = []
-
-    for (const ingredient of ingredientsName) {
-      const { id } = await this.prisma.ingredient.create({
-        data: {
-          name: ingredient,
-        },
+    const ingredients = await Promise.all(
+      ingredientsName.map(async ingredientName => {
+        return this.prisma.ingredient.upsert({
+          create: {
+            name: ingredientName,
+          },
+          update: {},
+          where: {
+            name: ingredientName,
+          },
+        })
       })
+    )
 
-      ingredientIds.push(id)
-    }
-
-    const product = await this.prisma.product.create({
-      data: {
+    const product = await this.prisma.product.upsert({
+      create: {
         name,
-        imageUrl,
+        imageUrl: imagePath,
         category: {
           connectOrCreate: {
             where: {
@@ -42,13 +52,17 @@ export class ProductsService {
           },
         },
         ingredients: {
-          connect: ingredientIds.map(ingredientId => ({ id: ingredientId })),
+          connect: ingredients.map(ingredient => ({ id: ingredient.id })),
         },
         description,
       },
       include: {
         category: true,
         ingredients: true,
+      },
+      update: {},
+      where: {
+        name,
       },
     })
 
@@ -65,7 +79,7 @@ export class ProductsService {
   }
 
   async findOne(id: number): Promise<Product | null> {
-    return await this.prisma.product.findFirst({
+    const product = await this.prisma.product.findUnique({
       where: {
         id,
       },
@@ -74,34 +88,51 @@ export class ProductsService {
         ingredients: true,
       },
     })
-  }
 
-  async update(
-    id: number,
-    { ingredientsName, categoryName, description, imageUrl, name }: UpdateProductDto
-  ): Promise<Product> {
-    const ingredientIds = []
-
-    if (ingredientsName) {
-      for (const ingredient of ingredientsName) {
-        const { id } = await this.prisma.ingredient.create({
-          data: {
-            name: ingredient,
-          },
-        })
-
-        ingredientIds.push(id)
-      }
+    if (!product) {
+      throw new ProductNotFoundException(id)
     }
 
-    let category
+    return product
+  }
 
-    if (categoryName) {
-      category = await this.prisma.category.create({
-        data: {
-          name: categoryName,
-        },
-      })
+  async update(id: number, { ingredientsName, categoryName, description, name }: UpdateProductDto): Promise<Product> {
+    const ingredients = ingredientsName
+      ? await Promise.all(
+          ingredientsName.map(async ingredientName => {
+            return this.prisma.ingredient.upsert({
+              create: {
+                name: ingredientName,
+              },
+              update: {},
+              where: {
+                name: ingredientName,
+              },
+            })
+          })
+        )
+      : []
+
+    const category = categoryName
+      ? await this.prisma.category.upsert({
+          create: {
+            name: categoryName,
+          },
+          update: {},
+          where: {
+            name: categoryName,
+          },
+        })
+      : undefined
+
+    const product = await this.prisma.product.findUnique({
+      where: {
+        id,
+      },
+    })
+
+    if (!product) {
+      throw new ProductNotFoundException(id)
     }
 
     return await this.prisma.product.update({
@@ -109,14 +140,13 @@ export class ProductsService {
         description,
         name,
         ingredients: {
-          connect: ingredientIds.map(ingredientId => ({ id: ingredientId })),
+          connect: ingredients.map(ingredient => ({ id: ingredient.id })),
         },
         category: {
           connect: {
             id: category?.id,
           },
         },
-        imageUrl,
       },
       where: {
         id,
@@ -125,6 +155,16 @@ export class ProductsService {
   }
 
   async remove(id: number): Promise<Product> {
+    const product = await this.prisma.product.findUnique({
+      where: {
+        id,
+      },
+    })
+
+    if (!product) {
+      throw new ProductNotFoundException(id)
+    }
+
     return await this.prisma.product.delete({
       where: {
         id,
