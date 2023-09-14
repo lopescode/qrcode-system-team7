@@ -1,26 +1,28 @@
 # QR Code System Team7 - Cardápio Online
 Project developed for the discipline of Software Product: Analysis, Specification, Project & Implementation at [Impacta Technology](https://www.impacta.edu.br/).
 
-![Project preview](./public/preview.png)
+![Project preview](./assets/preview.png)
 
 ## Setup
 
-- Create a new `.env` file in the project root
+- Create a new `.env` file in the project `server` root
 - Inside set the following variables:
 
   ```bash
   DATABASE_URL="mysql://<user>:<password>@<host>:<port>/<database>?schema=<schema>"
   ```
 
-## Installation
+## Server
 
-Before running the app, you need to install the dependencies.
+### Installation
+
+Before running the server, you need to install the dependencies in the `server` folder.
 
 ```bash
 $ npm install
 ```
 
-## Running migrations
+### Running migrations
 
 Before running the app, you need to run the migrations to create the database schema.
 
@@ -32,30 +34,32 @@ $ npm run migrate:dev
 $ npm run migrate:prod
 ```
 
+## Web
+
+### Installation
+
+Before running the app, you need to install the dependencies in the `web` folder.
+
+```bash
+$ npm install
+```
+
 ## Running the app
 
-To run the app, you need to run both the web and server apps.
+To run the app, you need to run following command inside the `server` folder:
 
 ```bash
 # development mode
-$ npm run dev:web
-$ npm run dev:server
-
-# production mode
-$ npm run prod:server
+$ npm run start:dev
 ```
 
-## Running the app with Docker
-
-To run the app with Docker, you need to run the following commands.
+To run the app, you need to run following command inside the `web` folder:
 
 ```bash
 # development mode
-$ docker-compose up
-
-# production mode
-$ docker-compose -f docker-compose.prod.yml up
+$ npm run dev
 ```
+
 
 ## Tech Stack
 
@@ -70,10 +74,5 @@ The following tools were used in the construction of the project:
 - [TailwindCSS](https://tailwindcss.com/)
 - [Prisma](https://www.prisma.io/)
 - [MySQL](https://www.mysql.com/)
-- [Prettier](https://prettier.io/)
-- [ESLint](https://eslint.org/)
-- [Husky](https://typicode.github.io/husky/#/)
-- [Docker](https://www.docker.com/)
-- [Docker Compose](https://docs.docker.com/compose/)
 - [GitHub Issues](https://docs.github.com/en/issues)
 - [GitHub Projects](https://docs.github.com/en/issues/organizing-your-work-with-project-boards/managing-project-boards/about-project-boards)
