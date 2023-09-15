@@ -11,38 +11,60 @@ datasource db {
 }
 
 model Ingredient {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  products    Product[]
-}
-
-model Category {
   id       Int       @id @default(autoincrement())
   name     String    @unique
   products Product[]
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String
+  imageUrl    String
+  products    Product[]
 }
 
 model Product {
   id          Int          @id @default(autoincrement())
   name        String       @unique
   description String?
-  ingredients   Ingredient[]
-  imageUrl       String
+  ingredients Ingredient[]
+  imageUrl    String
   category    Category?    @relation(fields: [categoryId], references: [id])
   categoryId  Int?
+  price       String
+  orderItems  OrderItem[]
 }
 
-model Table {
-  id      Int   @id @default(autoincrement())
-  number  Int   @unique
-  order   Order? @relation(fields: [orderId], references: [id])
-  orderId Int?   @unique
+model Customer {
+  id          Int    @id @default(autoincrement())
+  phoneNumber String @unique
+  order       Order? @relation(fields: [orderId], references: [id])
+  orderId     Int?   @unique
+}
+
+model OrderStatus {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  order Order[]
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  quantity  Int
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   Int
 }
 
 model Order {
-  id         Int       @id @default(autoincrement())
-  createdAt  DateTime  @default(now())
+  id         Int         @id @default(autoincrement())
+  createdAt  DateTime    @default(now())
   finishedAt DateTime?
-  total      Float
-  table      Table?
+  status     OrderStatus @relation(fields: [statusId], references: [id])
+  statusId   Int
+  items      OrderItem[]
+  total      String
+  customer   Customer?
 }
