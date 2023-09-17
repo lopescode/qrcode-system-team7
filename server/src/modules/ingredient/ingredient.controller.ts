@@ -8,27 +8,27 @@ export class IngredientController {
   constructor(private readonly ingredientService: IngredientService) {}
 
   @Post()
-  create(@Body() createIngredientDto: CreateIngredientDto) {
+  async create(@Body() createIngredientDto: CreateIngredientDto) {
     return this.ingredientService.create(createIngredientDto);
   }
 
   @Get()
-  findAll() {
+  async findAll() {
     return this.ingredientService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.ingredientService.findOne(+id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateIngredientDto: UpdateIngredientDto) {
+  async update(@Param('id') id: string, @Body() updateIngredientDto: UpdateIngredientDto) {
     return this.ingredientService.update(+id, updateIngredientDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.ingredientService.remove(+id);
   }
 }

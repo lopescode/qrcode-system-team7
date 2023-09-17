@@ -17,6 +17,15 @@
 }
 
 body {
+  display: flex;
+  min-height: 100vh;
+}
+
+#__next {
+  flex: 1 1 auto;
+}
+
+body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
       to bottom,

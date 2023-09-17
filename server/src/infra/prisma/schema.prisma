@@ -37,34 +37,34 @@ model Product {
 }
 
 model Customer {
-  id          Int    @id @default(autoincrement())
-  phoneNumber String @unique
-  order       Order? @relation(fields: [orderId], references: [id])
-  orderId     Int?   @unique
+  id          Int     @id @default(autoincrement())
+  phoneNumber String  @unique
+  name        String
+  orders      Order[]
 }
 
 model OrderStatus {
-  id    Int     @id @default(autoincrement())
-  name  String  @unique
-  order Order[]
+  id          Int         @id @default(autoincrement())
+  name        String      @unique
+  description String
+  orderItems  OrderItem[]
 }
 
 model OrderItem {
-  id        Int     @id @default(autoincrement())
-  quantity  Int
-  product   Product @relation(fields: [productId], references: [id])
-  productId Int
-  order     Order   @relation(fields: [orderId], references: [id])
-  orderId   Int
+  id            Int         @id @default(autoincrement())
+  product       Product     @relation(fields: [productId], references: [id])
+  productId     Int
+  order         Order       @relation(fields: [orderId], references: [id])
+  orderId       Int
+  orderStatus   OrderStatus @relation(fields: [orderStatusId], references: [id])
+  orderStatusId Int
 }
 
 model Order {
   id         Int         @id @default(autoincrement())
   createdAt  DateTime    @default(now())
-  finishedAt DateTime?
-  status     OrderStatus @relation(fields: [statusId], references: [id])
-  statusId   Int
-  items      OrderItem[]
-  total      String
-  customer   Customer?
+  active     Boolean     @default(true)
+  customer   Customer    @relation(fields: [customerId], references: [id])
+  customerId Int
+  orderItems OrderItem[]
 }

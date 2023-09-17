@@ -1,5 +1,5 @@
 import { type AppProps } from 'next/app'
-import React from 'react'
+import React, { useEffect } from 'react'
 import 'tailwindcss/tailwind.css'
 import './globals.css'
 import { Metadata } from 'next'
@@ -11,6 +11,10 @@ export const metadata: Metadata = {
 }
 
 const App: React.FC<AppProps> = ({ Component, pageProps }) => {
+  useEffect(() => {
+    localStorage.setItem('customerId', '1')
+  }, [])
+
   return (
     <RootLayout>
       <Component {...pageProps} />
