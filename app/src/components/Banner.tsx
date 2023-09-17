@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import React from 'react'
-import BannerImage from '../assets/images/banner.png'
+import BannerImage from '../assets/images/banner.jpg'
 
 const bannerItem = {
   description:
@@ -13,7 +13,7 @@ const bannerItem = {
 export const Banner: React.FC = () => {
   return (
     <>
-      <div className="w-full h-60 overflow-hidden">
+      <div className="w-full overflow-hidden">
         <Image
           className="w-full h-full object-cover  transition duration-200 ease-out hover:ease-in cursor-pointer hover:scale-110"
           src={bannerItem.image}

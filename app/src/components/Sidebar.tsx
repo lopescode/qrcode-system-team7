@@ -19,29 +19,24 @@ const sidebarItems = [
 export const Sidebar: React.FC = () => {
   const router = useRouter();
 
-  const isMenuRoute = router.pathname.startsWith('/menu');
-
   return (
-    <div className="flex justify-center">
-      <div className="flex-col">
-        {sidebarItems.map(item => (
-          <Link href={item.link} key={item.link}>
-            <div
-              className={`flex items-center text-center justify-center rounded-full w-24 h-24 border-gray-500 border-2 mb-6 cursor-pointer hover:font-semibold ${
-                (isMenuRoute && item.link === '/menu') || // Check if it's the "CARDÁPIO" link
-                (!isMenuRoute && router.pathname === item.link) // Check if it's not the "CARDÁPIO" link
-                  ? 'bg-orange-600 border-orange-600 font-semibold'
-                  : 'hover:bg-orange-700 hover:border-orange-700'
-              }`}
-            >
-              <div className="flex text-white flex-col items-center">
-                <item.icon className="text-2xl" />
-                <p className="text-xs p-1">{item.title}</p>
-              </div>
+    <div className="fixed top-1/2 -translate-y-1/2 translate-x-1/2">
+      {sidebarItems.map(item => (
+        <Link href={item.link} key={item.link}>
+          <div
+            className={`flex items-center text-center justify-center rounded-full w-24 h-24 border-gray-500 border-2 mb-6 cursor-pointer hover:font-semibold ${
+              router.pathname === item.link 
+                ? 'bg-orange-600 border-orange-600 font-semibold'
+                : 'hover:bg-orange-700 hover:border-orange-700'
+            }`}
+          >
+            <div className="flex text-white flex-col items-center">
+              <item.icon className="text-2xl" />
+              <p className="text-xs p-1">{item.title}</p>
             </div>
-          </Link>
-        ))}
-      </div>
-    </div>
+          </div>
+        </Link>
+      ))}
+  </div>
   );
 };

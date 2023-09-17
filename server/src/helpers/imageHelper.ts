@@ -3,7 +3,6 @@ import * as path from 'path';
 
 export class ImageHelper {
   static async uploadImage(image: Express.Multer.File, filePath: string): Promise<string> {
-    const uniqueFilename = `${new Date().getTime()}-${image.originalname}`;
     const uploadPath = path.join(
       __dirname,
       '..',
@@ -13,7 +12,7 @@ export class ImageHelper {
       'public',
       'uploads',
       filePath,
-      uniqueFilename,
+      image.originalname,
     );
 
     return new Promise((resolve, reject) => {
@@ -21,7 +20,7 @@ export class ImageHelper {
         if (error) {
           reject(error);
         } else {
-          resolve(`/uploads/${filePath}/${uniqueFilename}`);
+          resolve(`/uploads/${filePath}/${image.originalname}`);
         }
       });
     });

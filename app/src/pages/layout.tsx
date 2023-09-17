@@ -6,11 +6,11 @@ const RootLayout = ({
   children: React.ReactNode
 }) => {
   return (
-    <div className="flex h-screen w-screen">
-      <div className='flex w-1/12 h-full justify-center items-center'>
+    <div className='flex w-full h-full'>
+      <div className='w-60 h-full'>
         <Sidebar />
       </div>
-      <div className='bg-zinc-900 p-6 w-full h-full'>
+      <div className='bg-zinc-900 w-full h-full'>
         {children}
       </div>
     </div>

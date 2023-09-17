@@ -2,31 +2,15 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link'
 import { FaArrowLeft } from 'react-icons/fa';
 import { Banner } from '@/components/Banner';
-import SelectProductIngredientsModal from '@/components/modal/SelectProductIngredientsModal';
-import { CategoryCard } from '@/components/card/CategoryCard';
-import { ProductCard } from '@/components/card/ProductCard';
-
-type CategoryItems = {
-  id: number
-  name: string
-  description: string
-  imageUrl: string
-}
-
-type ProductItems = {
-  id: number
-  name: string
-  description: string
-  price: string
-  imageUrl: string
-  ingredients: string[]
-}
-
+import SelectProductIngredientsModal from '@/components/SelectProductIngredientsModal';
+import { CategoryCard } from '@/components/CategoryCard';
+import { ProductCard } from '@/components/ProductCard';
+import { Category, Product } from '@/models';
 
 const Menu: React.FC = () => {
-  const [categoryItems, setCategoryItems] = useState<CategoryItems[]>([]);
-  const [productItems, setProductItems] = useState<ProductItems[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<ProductItems>();
+  const [categoryItems, setCategoryItems] = useState<Category[]>([]);
+  const [productItems, setProductItems] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product>();
   const [ingredients, setIngredients] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number>();
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -39,7 +23,28 @@ const Menu: React.FC = () => {
     setModalIsOpen(false);
   };
 
-  const proceedEvent = () => {
+  const handleClick = async () => {
+    try {
+      const addItemToOrder = async () => {
+        const response = await fetch(`http://localhost:3000/order-item`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            productId: selectedProduct?.id,
+            orderId: 1,
+            orderStatusId: 1
+          }),
+        });
+        const data = await response.json();
+        return data;
+      };
+      await addItemToOrder();
+    } catch (error) {
+      console.error('Error adding item to order:', error);
+    }
+    
     alert('Produto adicionado ao carrinho!')
     closeModal()
   };
@@ -51,7 +56,7 @@ const Menu: React.FC = () => {
         const data = await response.json();
         setCategoryItems(data);
       } catch (error) {
-        console.error('Error fetching menu items:', error);
+        console.error('Error fetching category items:', error);
       }
     };
     fetchCategoryItems();
@@ -83,7 +88,7 @@ const Menu: React.FC = () => {
   };
 
   return (
-    <>
+    <div className='h-full w-full'>
       <div className="flex items-center p-4">
         <Link href="/">
           <FaArrowLeft className="cursor-pointer w-8 h-10 mr-10 text-white hover:text-orange-600" />
@@ -111,22 +116,22 @@ const Menu: React.FC = () => {
       {!selectedCategory ? (
         <>
           <Banner />
-          <div className="flex flex-wrap gap-7">
+          <div className="flex flex-wrap gap-7 p-4">
             {categoryItems.map((category) => (
               <CategoryCard id={category.id} description={category.description} imageUrl={category.imageUrl} name={category.name} handleCategoryClick={handleCategoryClick} key={category.id} />
             ))}
           </div>
         </>
         ) : (
-        <div className="flex flex-wrap gap-7">
+        <div className="flex flex-wrap gap-7 p-4">
           {productItems.map((product) => (
             <ProductCard id={product.id} description={product.description} imageUrl={product.imageUrl} name={product.name} handleProductClick={() => handleProductClick(product.id)} price={product.price} key={product.id} />
           ))}
 
-          {selectedProduct && (<SelectProductIngredientsModal isOpen={modalIsOpen} onRequestClose={closeModal} imageUrl={selectedProduct.imageUrl} proceedEvent={proceedEvent} ingredients={ingredients}/>)}
+          {selectedProduct && (<SelectProductIngredientsModal isOpen={modalIsOpen} onRequestClose={closeModal} selectedProduct={selectedProduct} handleClick={handleClick} ingredients={ingredients}/>)}
         </div>
         )}
-    </>
+    </div>
   );
 };
 
