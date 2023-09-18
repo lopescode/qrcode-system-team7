@@ -12,11 +12,6 @@ type OrderItem = {
   orderStatus: OrderStatus;
 };
 
-const statusColors: Record<string, string> = {
-  PENDING: "text-orange-500 bg-orange-500",
-  FINISHED: "text-green-500 bg-green-500",
-};
-
 const Orders: React.FC = () => {
   const [orderItems, setOrderItems] = useState<OrderItem[]>();
 
@@ -94,6 +89,12 @@ const Orders: React.FC = () => {
             </div>
           </div>
         ))}
+
+        {orderItems && orderItems.length === 0 && (
+          <div className="text-gray-400 ml-4">
+            <p>Nenhum item no seu pedido</p>
+          </div>
+        )}
       </div>
 
       <div>
@@ -102,31 +103,32 @@ const Orders: React.FC = () => {
       </div>
 
       <div>
-        {isOrderPaid() ? (
-          <span className="text-green-500">PAGO</span>
-        ) : (
+        {orderItems && orderItems.length > 0 && (
           <div className="flex flex-col gap-10">
             <div>
               <p>STATUS</p>
+              {isOrderPaid() ? (
+              <span className="text-green-500">PAGO</span>
+              ) : (
               <span className="text-orange-500 text-xl font-semibold">
-                {" "}
-                AGUARDANDO PAGAMENTO
+              AGUARDANDO PAGAMENTO
               </span>
+              )}
             </div>
-            <div>
-              <p>FORMA DE PAGAMENTO</p>
-              <p className="text-gray-400 mb-2">
-                Selecione uma forma de pagamento
-              </p>
-              <div className="flex gap-4">
-                <button>
-                  <FaCreditCard className="text-3xl text-gray-600 hover:text-gray-400" />
-                </button>
-                <button>
-                  <FaMoneyBill className="text-4xl text-green-600 hover:text-green-400" />
-                </button>
+              <div>
+                <p>FORMA DE PAGAMENTO</p>
+                <p className="text-gray-400 mb-2">
+                  Selecione uma forma de pagamento
+                </p>
+                <div className="flex gap-4">
+                  <button>
+                    <FaCreditCard className="text-3xl text-gray-600 hover:text-gray-400" />
+                  </button>
+                  <button>
+                    <FaMoneyBill className="text-4xl text-green-600 hover:text-green-400" />
+                  </button>
+                </div>
               </div>
-            </div>
           </div>
         )}
       </div>
