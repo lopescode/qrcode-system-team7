@@ -10,13 +10,65 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Ingredient {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique
-  products Product[]
+model Table {
+  id          Int     @id @default(autoincrement())
+  number      Int     @unique
+  isAvailable Boolean @default(true)
+  orders      Order[]
 }
 
-model Category {
+model CustomerPhone {
+  id          Int      @id @default(autoincrement())
+  countryCode String
+  areaCode    String
+  phoneNumber String   @unique
+  isMain      Boolean  @default(false)
+  customer    Customer @relation(fields: [customerId], references: [id])
+  customerId  Int
+}
+
+model CustomerAddress {
+  id            Int      @id @default(autoincrement())
+  streetAddress String
+  complement    String
+  neighborhood  String
+  city          String
+  country       String
+  zipCode       String
+  isMain        Boolean  @default(false)
+  customer      Customer @relation(fields: [customerId], references: [id])
+  customerId    Int
+}
+
+model Customer {
+  id        Int               @id @default(autoincrement())
+  cpf       String            @unique
+  password  String
+  firstName String
+  lastName  String
+  phones    CustomerPhone[]
+  addresses CustomerAddress[]
+  orders    Order[]
+}
+
+model Ingredient {
+  id          Int                    @id @default(autoincrement())
+  name        String                 @unique
+  description String
+  products    IngredientsOnProduct[]
+}
+
+model IngredientsOnProduct {
+  product      Product    @relation(fields: [productId], references: [id])
+  productId    Int
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  ingredientId Int
+  quantity     Int
+
+  @@id([productId, ingredientId])
+}
+
+model ProductCategory {
   id          Int       @id @default(autoincrement())
   name        String    @unique
   description String
@@ -25,46 +77,47 @@ model Category {
 }
 
 model Product {
-  id          Int          @id @default(autoincrement())
-  name        String       @unique
-  description String?
-  ingredients Ingredient[]
-  imageUrl    String
-  category    Category?    @relation(fields: [categoryId], references: [id])
-  categoryId  Int?
+  id          Int                    @id @default(autoincrement())
+  name        String                 @unique
   price       String
-  orderItems  OrderItem[]
+  imageUrl    String
+  category    ProductCategory        @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  orders      ProductsOnOrder[]
+  ingredients IngredientsOnProduct[]
 }
 
-model Customer {
-  id          Int     @id @default(autoincrement())
-  phoneNumber String  @unique
-  name        String
-  orders      Order[]
+model ProductsOnOrder {
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   Int
+  createdAt DateTime @default(now())
+
+  @@id([productId, orderId])
 }
 
-model OrderStatus {
-  id          Int         @id @default(autoincrement())
-  name        String      @unique
-  description String
-  orderItems  OrderItem[]
+enum PaymentStatus {
+  PENDING
+  PAID
 }
 
-model OrderItem {
-  id            Int         @id @default(autoincrement())
-  product       Product     @relation(fields: [productId], references: [id])
-  productId     Int
-  order         Order       @relation(fields: [orderId], references: [id])
+model OrderPayment {
+  id            Int           @id @default(autoincrement())
+  total         String
+  paymentStatus PaymentStatus
+  createdAt     DateTime      @default(now())
+  order         Order         @relation(fields: [orderId], references: [id])
   orderId       Int
-  orderStatus   OrderStatus @relation(fields: [orderStatusId], references: [id])
-  orderStatusId Int
 }
 
 model Order {
-  id         Int         @id @default(autoincrement())
-  createdAt  DateTime    @default(now())
-  active     Boolean     @default(true)
-  customer   Customer    @relation(fields: [customerId], references: [id])
-  customerId Int
-  orderItems OrderItem[]
+  id         Int               @id @default(autoincrement())
+  createdAt  DateTime          @default(now())
+  customer   Customer?         @relation(fields: [customerId], references: [id])
+  customerId Int?
+  table      Table?            @relation(fields: [tableId], references: [id])
+  tableId    Int?
+  products   ProductsOnOrder[]
+  payment    OrderPayment[]
 }

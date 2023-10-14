@@ -10,13 +10,11 @@ export class OrderService {
   async create({ customerId }: CreateOrderDto) {
     return await this.prisma.order.create({
       data: {
-        active: true,
-        createdAt: new Date(),
         customer: {
           connect: {
             id: customerId,
           }
-        }
+        },
       },
     });
   }
