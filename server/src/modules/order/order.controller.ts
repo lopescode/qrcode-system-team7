@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UsePipes, ValidationPipe } from '@nestjs/common'
 import { Order } from '@prisma/client'
+import { AddProductOnOrderDto } from './dto/add-product-on-order.dto'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { UpdateOrderDto } from './dto/update-order.dto'
 import { OrderService } from './order.service'
@@ -12,6 +13,12 @@ export class OrderController {
   @UsePipes(ValidationPipe)
   async create(@Body() createOrderDto: CreateOrderDto): Promise<Order> {
     return this.orderService.create(createOrderDto)
+  }
+
+  @Post(':id/add-product')
+  @UsePipes(ValidationPipe)
+  async addProduct(@Param('id') id: string, @Body() addProductOnOrderDto: AddProductOnOrderDto): Promise<Order> {
+    return this.orderService.addProduct(+id, addProductOnOrderDto)
   }
 
   @Patch(':id')

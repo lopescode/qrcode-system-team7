@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator'
+import { IsNumber, IsOptional } from 'class-validator'
 
 export class CreateOrderDto {
   @IsNumber()
@@ -8,12 +8,4 @@ export class CreateOrderDto {
   @IsNumber()
   @IsOptional()
   tableId: number
-
-  @IsNumber()
-  @IsNotEmpty()
-  productId: number
-
-  @IsNumber()
-  @IsNotEmpty()
-  quantity: number
 }

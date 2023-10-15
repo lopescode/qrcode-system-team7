@@ -2,48 +2,200 @@ import { Banner } from "@/components/Banner";
 import { CategoryCard } from "@/components/CategoryCard";
 import { ProductCard } from "@/components/ProductCard";
 import SelectProductIngredientsModal from "@/components/SelectProductIngredientsModal";
-import { Product, ProductCategory, ingredientsOnProduct } from "@/models";
-import { addProductToOrder, getProduct, listCategories } from "@/shared/api";
+import SignInModal from "@/components/SignInModal";
+import SignUpModal from "@/components/SignUpModal";
+import CustomerContext from "@/contexts/CustomerContext";
+import OrderContext from "@/contexts/OrderContext";
+import { isTabletUser } from "@/hooks/isTabletUser";
+import {
+  Customer,
+  IngredientsOnProduct,
+  Order,
+  Product,
+  ProductCategory,
+  Table,
+} from "@/models";
+import { Api } from "@/shared/api";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 const Menu: React.FC = () => {
   const [categories, setCategories] = useState<ProductCategory[]>([]);
-  const [ingredients, setIngredients] = useState<ingredientsOnProduct[]>([]);
+  const [ingredients, setIngredients] = useState<IngredientsOnProduct[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product>();
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory>();
-  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [
+    selectProductIngredientsModalIsOpen,
+    setSelectProductIngredientsModalIsOpen,
+  ] = useState(false);
+  const [signInModalIsOpen, setSignInModalIsOpen] = useState(false);
+  const [signUpModalIsOpen, setSignUpModalIsOpen] = useState(false);
+
+  const { customer, setCustomer } = useContext(CustomerContext);
+  const { order, setOrder } = useContext(OrderContext);
 
   useEffect(() => {
-    async function fetch() {
-      const categories = await listCategories();
-
-      setCategories(categories);
-    }
-
-    fetch();
+    Api.get<ProductCategory[]>("product-category").then((categoriesFetched) => {
+      if (categoriesFetched) {
+        setCategories(categoriesFetched);
+      }
+    });
   }, []);
 
-  const openModal = () => {
-    setModalIsOpen(true);
+  const openSelectProductIngredientsModal = () => {
+    setSelectProductIngredientsModalIsOpen(true);
   };
 
-  const closeModal = () => {
-    setModalIsOpen(false);
+  const closeSelectProductIngredientsModal = () => {
+    setSelectProductIngredientsModalIsOpen(false);
   };
 
-  const handleSelectProductClick = async (productId: number) => {
-    await addProductToOrder({
-      orderId: 1,
-      productId,
-      quantity: 1,
-      customerId: 1,
-    });
+  const openSignInModal = () => {
+    setSignInModalIsOpen(true);
+  };
 
-    alert("Produto adicionado ao carrinho!");
-    closeModal();
+  const closeSignInModal = () => {
+    setSignInModalIsOpen(false);
+  };
+
+  const openSignUpModal = () => {
+    setSignUpModalIsOpen(true);
+  };
+
+  const closeSignUpModal = () => {
+    setSignUpModalIsOpen(false);
+  };
+
+  const handleSignInSubmit = async (data: any) => {
+    const customerFetched = await Api.post<Customer>("customer/login", data);
+
+    if (customerFetched) {
+      toast("Logado com sucesso!", {
+        hideProgressBar: true,
+        autoClose: 2000,
+        type: "success",
+      });
+
+      setCustomer(customerFetched);
+
+      const orderFetched = await Api.post<Order>("order", {
+        customerId: customerFetched.id,
+      });
+
+      if (orderFetched) {
+        setOrder(orderFetched);
+      }
+    }
+
+    closeSignInModal();
+    closeSelectProductIngredientsModal();
+  };
+
+  const handleSignUpSubmit = async (data: any) => {
+    const customerFetched = await Api.post<Customer>("customer", data);
+
+    if (customerFetched) {
+      toast("Cadastrado com sucesso!", {
+        hideProgressBar: true,
+        autoClose: 2000,
+        type: "success",
+      });
+
+      setCustomer(customerFetched);
+
+      const orderFetched = await Api.post<Order>("order", {
+        customerId: customerFetched.id,
+      });
+
+      if (orderFetched) {
+        setOrder(orderFetched);
+      }
+    }
+
+    closeSignUpModal();
+  };
+
+  const handleSignInClick = () => {
+    closeSignUpModal();
+    openSignInModal();
+  };
+
+  const handleSignUpClick = () => {
+    closeSignInModal();
+    openSignUpModal();
+  };
+
+  const handleSelectProductClick = async () => {
+    if (!selectedProduct) {
+      closeSelectProductIngredientsModal();
+      return;
+    }
+
+    if (!order.id && !customer.id) {
+      if (!isTabletUser()) {
+        openSignInModal();
+        return;
+      }
+
+      const tables = await Api.get<Table[]>("table");
+      if (!tables) {
+        toast("Não há mesas cadastradas", {
+          autoClose: 2000,
+          type: "error",
+          hideProgressBar: true,
+        });
+        return;
+      }
+
+      const tablesAvailable = tables.filter(
+        (table) => table.isAvailable === true
+      );
+      if (!tablesAvailable) {
+        toast("Não há mesas disponíveis", {
+          autoClose: 2000,
+          type: "error",
+          hideProgressBar: true,
+        });
+        return;
+      }
+
+      const table = tablesAvailable[0];
+      const orderFetched = await Api.post<Order>("order", {
+        tableId: table.id,
+      });
+
+      if (orderFetched) {
+        setOrder(orderFetched);
+
+        toast("Produto adicionado ao pedido!", {
+          hideProgressBar: true,
+          autoClose: 2000,
+          type: "success",
+        });
+      }
+    }
+
+    const orderUpdated = await Api.post<Order>(
+      `order/${order.id}/add-product`,
+      {
+        productId: selectedProduct.id,
+      }
+    );
+
+    if (orderUpdated) {
+      toast("Produto adicionado ao pedido!", {
+        hideProgressBar: true,
+        autoClose: 2000,
+        type: "success",
+      });
+
+      setOrder(orderUpdated);
+    }
+
+    closeSelectProductIngredientsModal();
   };
 
   const handleCategoryClick = async (category: ProductCategory) => {
@@ -52,11 +204,18 @@ const Menu: React.FC = () => {
   };
 
   const handleProductClick = async (productId: number) => {
-    const selectedProduct = await getProduct(productId);
+    const selectedProduct = await Api.get<Product>(`product/${productId}`);
 
-    setSelectedProduct(selectedProduct);
-    setIngredients(selectedProduct.ingredients);
-    openModal();
+    if (selectedProduct) {
+      setSelectedProduct(selectedProduct);
+      setIngredients(selectedProduct.ingredients);
+    }
+
+    if (!order && !customer) {
+      openSignInModal();
+    } else {
+      openSelectProductIngredientsModal();
+    }
   };
 
   return (
@@ -116,13 +275,27 @@ const Menu: React.FC = () => {
 
           {selectedProduct && (
             <SelectProductIngredientsModal
-              isOpen={modalIsOpen}
-              onRequestClose={closeModal}
+              isOpen={selectProductIngredientsModalIsOpen}
+              onRequestClose={closeSelectProductIngredientsModal}
               selectedProduct={selectedProduct}
               handleSelectProductClick={handleSelectProductClick}
               ingredients={ingredients}
             />
           )}
+
+          <SignInModal
+            isOpen={signInModalIsOpen}
+            onRequestClose={closeSignInModal}
+            onSubmit={handleSignInSubmit}
+            handleSignUpClick={handleSignUpClick}
+          />
+
+          <SignUpModal
+            isOpen={signUpModalIsOpen}
+            onRequestClose={closeSignUpModal}
+            onSubmit={handleSignUpSubmit}
+            handleSignInClick={handleSignInClick}
+          />
         </div>
       )}
     </div>

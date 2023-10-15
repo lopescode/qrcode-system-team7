@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/infra/prisma/prisma.service'
 import { CreateCustomerDto } from './dto/create-customer.dto'
+import { LoginCustomerDto } from './dto/login-customer.dto'
 
 @Injectable()
 export class CustomerService {
@@ -22,9 +23,9 @@ export class CustomerService {
     state,
     streetAddress,
   }: CreateCustomerDto) {
-    const customerAlreadyExists = await this.prisma.customer.findUnique({
+    const customerAlreadyExists = await this.prisma.customer.findFirst({
       where: {
-        cpf,
+        OR: [{ cpf }, { phones: { some: { phoneNumber } } }],
       },
     })
 
@@ -76,6 +77,24 @@ export class CustomerService {
     })
 
     if (!customer) throw new BadRequestException('Customer not found')
+
+    return {
+      id: customer.id,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+    }
+  }
+
+  async login(loginCustomerDto: LoginCustomerDto) {
+    const customer = await this.prisma.customer.findUnique({
+      where: {
+        cpf: loginCustomerDto.cpf,
+      },
+    })
+
+    if (!customer) throw new BadRequestException('Customer not found')
+
+    if (customer.password !== loginCustomerDto.password) throw new BadRequestException('CPF or password incorrect')
 
     return {
       id: customer.id,

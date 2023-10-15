@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
-import { Order } from '@prisma/client'
+import { Order, PaymentStatus } from '@prisma/client'
 import { PrismaService } from 'src/infra/prisma/prisma.service'
+import { AddProductOnOrderDto } from './dto/add-product-on-order.dto'
 import { CreateOrderDto } from './dto/create-order.dto'
 import { UpdateOrderDto } from './dto/update-order.dto'
 
@@ -8,21 +9,9 @@ import { UpdateOrderDto } from './dto/update-order.dto'
 export class OrderService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create({ customerId, productId, tableId, quantity }: CreateOrderDto): Promise<Order> {
+  async create({ customerId, tableId }: CreateOrderDto): Promise<Order> {
     if (!customerId && !tableId) throw new BadRequestException('You must provide a customer or a table')
     if (customerId && tableId) throw new BadRequestException('You must provide only a customer or a table')
-
-    const product = await this.prisma.product.findUnique({
-      where: {
-        id: productId,
-      },
-    })
-
-    if (!product) throw new BadRequestException('Product not found')
-
-    const price = (Number(product.price) * quantity).toFixed(2)
-
-    let order: Order
 
     if (customerId) {
       const customer = await this.prisma.customer.findUnique({
@@ -44,18 +33,6 @@ export class OrderService {
       })
 
       if (customerHasOrderUnpaid) throw new BadRequestException('Customer already has an unpaid order')
-
-      order = await this.prisma.order.create({
-        data: {
-          customer: {
-            connect: {
-              id: customerId,
-            },
-          },
-          paymentStatus: 'PENDING',
-          price,
-        },
-      })
     } else if (tableId) {
       const table = await this.prisma.table.findUnique({
         where: {
@@ -75,40 +52,19 @@ export class OrderService {
       })
 
       if (tableHasOrderUnpaid) throw new BadRequestException('Table already has an unpaid order')
-
-      order = await this.prisma.order.create({
-        data: {
-          table: {
-            connect: {
-              id: tableId,
-            },
-          },
-          paymentStatus: 'PENDING',
-          price,
-        },
-      })
     }
 
-    await this.prisma.productsOnOrder.create({
+    return await this.prisma.order.create({
       data: {
-        order: {
-          connect: {
-            id: order.id,
-          },
-        },
-        product: {
-          connect: {
-            id: productId,
-          },
-        },
-        quantity,
+        paymentStatus: PaymentStatus.PENDING,
+        price: '0',
+        customerId,
+        tableId,
       },
     })
-
-    return order
   }
 
-  async update(id: number, { productId, quantity }: UpdateOrderDto): Promise<Order> {
+  async addProduct(id: number, { productId }: AddProductOnOrderDto): Promise<Order> {
     const product = await this.prisma.product.findUnique({
       where: {
         id: productId,
@@ -121,47 +77,67 @@ export class OrderService {
       where: {
         id,
       },
+      include: {
+        products: true,
+      },
     })
 
     if (!order) throw new BadRequestException('Order not found')
 
-    const orderUpdated = await this.prisma.order.update({
+    const productAlreadyAdded = order.products.find(product => product.productId === productId)
+    const productQuantity = productAlreadyAdded ? productAlreadyAdded.quantity + 1 : 1
+
+    if (productAlreadyAdded) {
+      await this.prisma.productsOnOrder.update({
+        data: {
+          quantity: productQuantity,
+        },
+        where: {
+          productId_orderId: {
+            orderId: id,
+            productId,
+          },
+        },
+      })
+    }
+
+    const price = String(Number(order.price) + Number(product.price))
+
+    return await this.prisma.order.update({
+      where: {
+        id,
+      },
       data: {
+        price,
         products: {
-          update: {
+          connectOrCreate: {
+            create: {
+              quantity: productQuantity,
+              productId,
+            },
             where: {
               productId_orderId: {
-                orderId: order.id,
-                productId: product.id,
+                orderId: id,
+                productId,
               },
-            },
-            data: {
-              quantity,
             },
           },
         },
       },
-      where: {
-        id,
-      },
-    })
-
-    const productsOnOrder = await this.prisma.productsOnOrder.findMany({
-      where: {
-        orderId: order.id,
-      },
       include: {
-        product: true,
+        products: {
+          include: {
+            product: true,
+          },
+        },
       },
     })
+  }
 
-    const totalPriceUpdated = productsOnOrder.reduce((_, productOnOrder) => {
-      return Number(productOnOrder.product.price) * productOnOrder.quantity
-    }, 0)
-
+  async update(id: number, { paymentStatus }: UpdateOrderDto): Promise<Order> {
     return await this.prisma.order.update({
       data: {
-        price: totalPriceUpdated.toFixed(2),
+        paymentStatus,
       },
       where: {
         id,
