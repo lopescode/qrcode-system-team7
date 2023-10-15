@@ -1,14 +1,14 @@
-import Image from 'next/image'
-import React from 'react'
-import BannerImage from '../assets/images/banner.jpg'
+import Image from "next/image";
+import React from "react";
+import BannerImage from "../assets/images/banner.jpg";
 
 const bannerItem = {
   description:
-    'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   image: BannerImage,
-  imageAlt: 'Banner',
-  title: 'aproveite as ofertas do dia!',
-}
+  imageAlt: "Banner",
+  title: "aproveite as ofertas do dia!",
+};
 
 export const Banner: React.FC = () => {
   return (
@@ -21,9 +21,11 @@ export const Banner: React.FC = () => {
         />
       </div>
       <div className="p-3 cursor-pointer hover:font-semibold">
-        <h1 className="text-orange-400 text-xl uppercase">{bannerItem.title}</h1>
+        <h1 className="text-orange-400 text-xl uppercase">
+          {bannerItem.title}
+        </h1>
         <p className="text-white text-lg">{bannerItem.description}</p>
       </div>
     </>
-  )
-}
+  );
+};

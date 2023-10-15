@@ -1,34 +1,19 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { CustomerService } from './customer.service';
-import { CreateCustomerDto } from './dto/create-customer.dto';
-import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { Body, Controller, Get, Param, Post, UsePipes, ValidationPipe } from '@nestjs/common'
+import { CustomerService } from './customer.service'
+import { CreateCustomerDto } from './dto/create-customer.dto'
 
 @Controller('customer')
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 
   @Post()
+  @UsePipes(ValidationPipe)
   async create(@Body() createCustomerDto: CreateCustomerDto) {
-    return this.customerService.create(createCustomerDto);
-  }
-
-  @Get()
-  async findAll() {
-    return this.customerService.findAll();
+    return this.customerService.create(createCustomerDto)
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.customerService.findOne(+id);
-  }
-
-  @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateCustomerDto: UpdateCustomerDto) {
-    return this.customerService.update(+id, updateCustomerDto);
-  }
-
-  @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return this.customerService.remove(+id);
+    return this.customerService.findOne(+id)
   }
 }

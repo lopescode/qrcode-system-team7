@@ -1,6 +1,5 @@
-// Modal.tsx
-import React from 'react';
-import ReactModal from 'react-modal';
+import React from "react";
+import ReactModal from "react-modal";
 
 interface ModalProps {
   isOpen: boolean;
@@ -8,7 +7,7 @@ interface ModalProps {
   children: React.ReactNode;
 }
 
-ReactModal.setAppElement('#__next'); // Define o elemento raiz do seu aplicativo
+ReactModal.setAppElement("#__next"); // Define o elemento raiz do seu aplicativo
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onRequestClose, children }) => {
   if (!isOpen) return null;

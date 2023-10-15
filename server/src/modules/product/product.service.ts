@@ -1,165 +1,100 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { type Product } from '@prisma/client';
-import { PrismaService } from '../../infra/prisma/prisma.service';
-import { type CreateProductDto } from './dto/create-product.dto';
-import { type UpdateProductDto } from './dto/update-product.dto';
-import { ProductNotFoundException } from '../../exceptions/NotFoundExceptions';
-import { ImageHelper } from 'src/helpers/imageHelper';
+import { BadRequestException, Injectable } from '@nestjs/common'
+import { Product } from '@prisma/client'
+import { ImageHelper } from 'src/helpers/imageHelper'
+import { PrismaService } from '../../infra/prisma/prisma.service'
+import { type CreateProductDto } from './dto/create-product.dto'
 
 @Injectable()
 export class ProductService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    { name, categoryName, ingredientsName, description, price, imageFile }: CreateProductDto
-  ): Promise<Product> {
+  async create({ ingredientIds, description, categoryId, imageFile, price, name }: CreateProductDto): Promise<Product> {
+    await this.validate({ ingredientIds, categoryId, name, description, price, imageFile })
+
+    const imageUrl = await ImageHelper.uploadImage(imageFile, 'products')
+
+    const productCreated = await this.prisma.product.create({
+      data: {
+        name,
+        description,
+        imageUrl,
+        price,
+        category: {
+          connect: {
+            id: categoryId,
+          },
+        },
+      },
+    })
+
+    const productIngredients = ingredientIds.map(ingredient => {
+      return {
+        ingredientId: ingredient,
+        productId: productCreated.id,
+      }
+    })
+
+    productIngredients.map(async productIngredient => {
+      await this.prisma.ingredientsOnProduct.create({
+        data: productIngredient,
+      })
+    })
+
+    return productCreated
+  }
+
+  private async validate({ ingredientIds, categoryId, name }: CreateProductDto): Promise<void> {
     const productExists = await this.prisma.product.findUnique({
       where: {
         name,
       },
-    });
+    })
+    if (productExists) throw new BadRequestException('Product already exists')
 
-    if (productExists) throw new BadRequestException('Product already exists');
-
-    const category = await this.prisma.category.findUnique({
+    const category = await this.prisma.productCategory.findUnique({
       where: {
-        name: categoryName,
+        id: categoryId,
       },
-    });
-    
-    if (!category) throw new BadRequestException('Category not found');
+    })
+    if (!category) throw new BadRequestException(`Category #${categoryId} not found`)
 
-    const ingredients = await Promise.all(
-      ingredientsName.map(async (ingredientName) => {
-        return this.prisma.ingredient.upsert({
-          create: {
-            name: ingredientName,
-          },
-          update: {},
-          where: {
-            name: ingredientName,
-          },
-        });
-      }),
-    );
-
-    const imagePath = await ImageHelper.uploadImage(imageFile, 'products');
-
-    return await this.prisma.product.create({
-      data: {
-        name,
-        imageUrl: imagePath,
-        price,
-        category: {
-          connect: {
-            id: category.id,
-          },
+    ingredientIds.map(async ingredientId => {
+      const ingredient = await this.prisma.productIngredient.findUnique({
+        where: {
+          id: ingredientId,
         },
-        ingredients: {
-          connect: ingredients.map((ingredient) => ({ id: ingredient.id })),
-        },
-        description,
-      }
-    });
+      })
+
+      if (!ingredient) throw new BadRequestException(`Ingredient #${ingredientId} not found`)
+    })
   }
 
   async findAll(): Promise<Product[]> {
     return await this.prisma.product.findMany({
       include: {
-        ingredients: true,
-      }
-    });
+        category: true,
+        ingredients: {
+          include: {
+            ingredient: true,
+          },
+        },
+      },
+    })
   }
 
   async findOne(id: number): Promise<Product | null> {
-    const product = await this.prisma.product.findUnique({
+    return await this.prisma.product.findUnique({
       where: {
         id,
       },
       include: {
-        ingredients: true,
-      }
-    });
-
-    if (!product) {
-      throw new ProductNotFoundException(id);
-    }
-
-    return product;
-  }
-
-  async update(
-    id: number,
-    { ingredientsName, categoryName, description, name }: UpdateProductDto,
-  ): Promise<Product> {
-    const category = await this.prisma.category.findUnique({
-      where: {
-        name: categoryName,
-      },
-    });
-    
-    if (!category) throw new BadRequestException('Category not found');
-
-    const ingredients = ingredientsName
-      ? await Promise.all(
-          ingredientsName.map(async (ingredientName) => {
-            return this.prisma.ingredient.upsert({
-              create: {
-                name: ingredientName,
-              },
-              update: {},
-              where: {
-                name: ingredientName,
-              },
-            });
-          }),
-        )
-      : [];
-
-    const product = await this.prisma.product.findUnique({
-      where: {
-        id,
-      },
-    });
-
-    if (!product) {
-      throw new ProductNotFoundException(id);
-    }
-
-    return await this.prisma.product.update({
-      data: {
-        description,
-        name,
+        category: true,
         ingredients: {
-          connect: ingredients.map((ingredient) => ({ id: ingredient.id })),
-        },
-        category: {
-          connect: {
-            id: category.id,
+          include: {
+            ingredient: true,
           },
         },
       },
-      where: {
-        id,
-      },
-    });
-  }
-
-  async remove(id: number): Promise<Product> {
-    const product = await this.prisma.product.findUnique({
-      where: {
-        id,
-      },
-    });
-
-    if (!product) {
-      throw new ProductNotFoundException(id);
-    }
-
-    return await this.prisma.product.delete({
-      where: {
-        id,
-      },
-    });
+    })
   }
 }

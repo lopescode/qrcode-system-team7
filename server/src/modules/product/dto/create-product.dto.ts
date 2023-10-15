@@ -1,10 +1,4 @@
-import {
-  ArrayMinSize,
-  IsArray,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { ArrayMinSize, IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator'
 
 export class CreateProductDto {
   @IsString()
@@ -12,24 +6,25 @@ export class CreateProductDto {
   name: string
 
   @IsString()
-  @IsOptional()
-  description?: string
-
-  @IsString()
   @IsNotEmpty()
-  categoryName: string
+  description: string
 
   @IsString()
   @IsNotEmpty()
   price: string
 
+  imageFile: Express.Multer.File
+
+  @IsNumber()
+  @IsNotEmpty()
+  categoryId: number
+
   @IsArray({
     context: {
-      IsString,
+      IsArray: 'IngredientIds must be an array of numbers',
+      IsNumber: 'IngredientIds must be an array of numbers',
     },
   })
   @ArrayMinSize(1)
-  ingredientsName: string[]
-
-  imageFile: Express.Multer.File
+  ingredientIds: number[]
 }

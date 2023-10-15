@@ -1,26 +1,86 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCustomerDto } from './dto/create-customer.dto';
-import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { BadRequestException, Injectable } from '@nestjs/common'
+import { PrismaService } from 'src/infra/prisma/prisma.service'
+import { CreateCustomerDto } from './dto/create-customer.dto'
 
 @Injectable()
 export class CustomerService {
-  create(createCustomerDto: CreateCustomerDto) {
-    return 'This action adds a new customer';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create({
+    areaCode,
+    city,
+    complement,
+    country,
+    cpf,
+    countryCode,
+    firstName,
+    lastName,
+    neighborhood,
+    password,
+    phoneNumber,
+    postalCode,
+    state,
+    streetAddress,
+  }: CreateCustomerDto) {
+    const customerAlreadyExists = await this.prisma.customer.findUnique({
+      where: {
+        cpf,
+      },
+    })
+
+    if (customerAlreadyExists) throw new BadRequestException('Customer already registered')
+
+    const customer = await this.prisma.customer.create({
+      data: {
+        cpf,
+        firstName,
+        lastName,
+        password,
+      },
+    })
+
+    await this.prisma.customerPhone.create({
+      data: {
+        areaCode,
+        countryCode,
+        phoneNumber,
+        isMain: true,
+        customerId: customer.id,
+      },
+    })
+
+    await this.prisma.customerAddress.create({
+      data: {
+        city,
+        complement,
+        country,
+        neighborhood,
+        postalCode,
+        state,
+        streetAddress,
+        customerId: customer.id,
+        isMain: true,
+      },
+    })
+
+    return {
+      id: customer.id,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+    }
   }
 
-  findAll() {
-    return `This action returns all customer`;
-  }
+  async findOne(id: number) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { id },
+    })
 
-  findOne(id: number) {
-    return `This action returns a #${id} customer`;
-  }
+    if (!customer) throw new BadRequestException('Customer not found')
 
-  update(id: number, updateCustomerDto: UpdateCustomerDto) {
-    return `This action updates a #${id} customer`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} customer`;
+    return {
+      id: customer.id,
+      firstName: customer.firstName,
+      lastName: customer.lastName,
+    }
   }
 }
