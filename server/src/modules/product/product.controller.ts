@@ -1,21 +1,18 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
-  Patch,
   Post,
   UploadedFile,
   UseInterceptors,
   UsePipes,
   ValidationPipe,
-} from '@nestjs/common';
-import { type Product } from '@prisma/client';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-import { ProductService } from './product.service';
-import { FileInterceptor } from '@nestjs/platform-express';
+} from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { type Product } from '@prisma/client'
+import { CreateProductDto } from './dto/create-product.dto'
+import { ProductService } from './product.service'
 
 @Controller('product')
 export class ProductController {
@@ -24,37 +21,20 @@ export class ProductController {
   @Post()
   @UsePipes(ValidationPipe)
   @UseInterceptors(FileInterceptor('file'))
-  async create(
-    @UploadedFile() imageFile: Express.Multer.File,
-    @Body() createProductDto: CreateProductDto,
-  ): Promise<Product> {
-    return await this.productService.create({
+  create(@UploadedFile() imageFile: Express.Multer.File, @Body() createProductDto: CreateProductDto): Promise<Product> {
+    return this.productService.create({
       ...createProductDto,
-      imageFile
-     });
+      imageFile,
+    })
   }
 
   @Get()
-  async findAll(): Promise<Product[]> {
-    return await this.productService.findAll();
+  findAll(): Promise<Product[]> {
+    return this.productService.findAll()
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Product | null> {
-    return await this.productService.findOne(+id);
-  }
-
-  @Patch(':id')
-  @UsePipes(ValidationPipe)
-  async update(
-    @Param('id') id: string,
-    @Body() updateProductDto: UpdateProductDto,
-  ): Promise<Product> {
-    return await this.productService.update(+id, updateProductDto);
-  }
-
-  @Delete(':id')
-  async remove(@Param('id') id: string): Promise<Product> {
-    return await this.productService.remove(+id);
+  findOne(@Param('id') id: string): Promise<Product | null> {
+    return this.productService.findOne(+id)
   }
 }
