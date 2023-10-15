@@ -1,11 +1,8 @@
-import { IsNotEmpty, IsNumber } from 'class-validator'
+import { PaymentStatus } from '@prisma/client'
+import { IsNotEmpty, IsString } from 'class-validator'
 
 export class UpdateOrderDto {
+  @IsString()
   @IsNotEmpty()
-  @IsNumber()
-  productId: number
-
-  @IsNotEmpty()
-  @IsNumber()
-  quantity: number
+  paymentStatus: PaymentStatus
 }

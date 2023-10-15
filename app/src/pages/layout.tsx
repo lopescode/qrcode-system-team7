@@ -1,20 +1,14 @@
-import { Sidebar } from '@/components/Sidebar'
+import { Sidebar } from "@/components/Sidebar";
 
-const RootLayout = ({
-  children,
-}: {
-  children: React.ReactNode
-}) => {
+const RootLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className='flex w-full h-full'>
-      <div className='w-60 h-full'>
+    <div className="flex w-full h-full">
+      <div className="w-60 h-full">
         <Sidebar />
       </div>
-      <div className='bg-zinc-900 w-full h-full'>
-        {children}
-      </div>
+      <div className="bg-zinc-900 w-full h-full">{children}</div>
     </div>
-  )
-}
+  );
+};
 
-export default RootLayout
+export default RootLayout;

@@ -22,7 +22,7 @@ export type Order = {
   products: ProductOnOrder[];
 };
 
-export type ingredientsOnProduct = {
+export type IngredientsOnProduct = {
   productId: number;
   ingredientId: number;
   createdAt: string;
@@ -36,7 +36,7 @@ export type Product = {
   price: string;
   imageUrl: string;
   categoryId: number;
-  ingredients: ProductIngredient[];
+  ingredients: IngredientsOnProduct[];
 };
 
 export type ProductCategory = {

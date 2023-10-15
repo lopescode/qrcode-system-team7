@@ -1,71 +1,32 @@
-const API_URL = "http://localhost:3000";
+import axios from "axios";
+import { toast } from "react-toastify";
 
-export const listCategories = async () => {
-  const path = `${API_URL}/product-category`;
+export const API_URL = "http://localhost:3000";
 
-  try {
-    const response = await fetch(path);
-    return response.json();
-  } catch (error) {
-    console.log("Error fetching categories", error);
+export abstract class Api {
+  static async get<T>(path: string): Promise<T | null> {
+    try {
+      const { data } = await axios.get(`${API_URL}/${path}`);
+
+      return data;
+    } catch (error) {
+      toast(`Erro ao buscar ${path}, tente novamente`);
+      return null;
+    }
   }
-};
 
-export const getProduct = async (productId: number) => {
-  const path = `${API_URL}/product/${productId}`;
+  static async post<T>(path: string, body: any): Promise<T | null> {
+    try {
+      const { data } = await axios.post(`${API_URL}/${path}`, body, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-  try {
-    const response = await fetch(path);
-    return response.json();
-  } catch (error) {
-    console.log("Error fetching product", error);
+      return data;
+    } catch (error) {
+      toast(`Erro ao acessar ${path}, tente novamente`);
+      return null;
+    }
   }
-};
-
-export const getOrder = async (orderId: number) => {
-  const path = `${API_URL}/order/${orderId}`;
-
-  try {
-    const response = await fetch(path);
-    return response.json();
-  } catch (error) {
-    console.log("Error fetching order", error);
-  }
-};
-
-type AddProductToOrderParams = {
-  orderId: number;
-  productId: number;
-  customerId?: number;
-  tableId?: number;
-  quantity: number;
-};
-
-export const addProductToOrder = async ({
-  orderId,
-  productId,
-  customerId,
-  tableId,
-  quantity,
-}: AddProductToOrderParams) => {
-  const path = `${API_URL}/order/${orderId}`;
-
-  try {
-    const response = await fetch(path, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        customerId,
-        tableId,
-        quantity,
-        productId,
-      }),
-    });
-
-    return response.json();
-  } catch (error) {
-    console.log("Error adding product to order", error);
-  }
-};
+}
