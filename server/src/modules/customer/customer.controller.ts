@@ -1,26 +1,26 @@
 import { Body, Controller, Get, Param, Post, UsePipes, ValidationPipe } from '@nestjs/common'
 import { CustomerService } from './customer.service'
-import { CreateCustomerDto } from './dto/create-customer.dto'
-import { LoginCustomerDto } from './dto/login-customer.dto'
+import { SignInCustomerDto } from './dto/sign-in-customer.dto'
+import { SignUpCustomerDto } from './dto/sign-up-customer.dto'
 
 @Controller('customer')
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
-
-  @Post()
-  @UsePipes(ValidationPipe)
-  async create(@Body() createCustomerDto: CreateCustomerDto) {
-    return this.customerService.create(createCustomerDto)
-  }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return this.customerService.findOne(+id)
   }
 
-  @Post('/login')
+  @Post('/sign-in')
   @UsePipes(ValidationPipe)
-  async login(@Body() loginCustomerDto: LoginCustomerDto) {
-    return this.customerService.login(loginCustomerDto)
+  async signIn(@Body() signInCustomerDto: SignInCustomerDto) {
+    return this.customerService.signIn(signInCustomerDto)
+  }
+
+  @Post('/sign-up')
+  @UsePipes(ValidationPipe)
+  async signUp(@Body() signUpCustomerDto: SignUpCustomerDto) {
+    return this.customerService.signUp(signUpCustomerDto)
   }
 }

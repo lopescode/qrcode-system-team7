@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, Length } from 'class-validator'
 
-export class LoginCustomerDto {
+export class SignInCustomerDto {
   @IsString()
   @IsNotEmpty()
   @Length(11)

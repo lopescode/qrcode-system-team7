@@ -134,6 +134,58 @@ export class OrderService {
     })
   }
 
+  async removeProduct(id: number, { productId }: AddProductOnOrderDto): Promise<Order> {
+    const product = await this.prisma.product.findUnique({
+      where: {
+        id: productId,
+      },
+    })
+
+    if (!product) throw new BadRequestException('Product not found')
+
+    const order = await this.prisma.order.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        products: true,
+      },
+    })
+
+    if (!order) throw new BadRequestException('Order not found')
+
+    const productAlreadyAdded = order.products.find(product => product.productId === productId)
+
+    if (!productAlreadyAdded) throw new BadRequestException('Product not found on order')
+
+    const quantity = await this.prisma.productsOnOrder.delete({
+      where: {
+        productId_orderId: {
+          orderId: id,
+          productId,
+        },
+      },
+    })
+
+    const price = String(Number(order.price) - Number(quantity.quantity) * Number(product.price))
+
+    return await this.prisma.order.update({
+      where: {
+        id,
+      },
+      data: {
+        price,
+      },
+      include: {
+        products: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    })
+  }
+
   async update(id: number, { paymentStatus }: UpdateOrderDto): Promise<Order> {
     return await this.prisma.order.update({
       data: {
@@ -145,8 +197,12 @@ export class OrderService {
     })
   }
 
-  async findAll(): Promise<Order[]> {
+  async findAll(customerId: number, status: PaymentStatus): Promise<Order[]> {
     return await this.prisma.order.findMany({
+      where: {
+        customerId: Number(customerId),
+        paymentStatus: status,
+      },
       include: {
         customer: true,
         products: {

@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { PrismaService } from 'src/infra/prisma/prisma.service'
-import { CreateCustomerDto } from './dto/create-customer.dto'
-import { LoginCustomerDto } from './dto/login-customer.dto'
+import { SignInCustomerDto } from './dto/sign-in-customer.dto'
+import { SignUpCustomerDto } from './dto/sign-up-customer.dto'
 
 @Injectable()
 export class CustomerService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create({
+  async signUp({
     areaCode,
     city,
     complement,
@@ -22,7 +22,7 @@ export class CustomerService {
     postalCode,
     state,
     streetAddress,
-  }: CreateCustomerDto) {
+  }: SignUpCustomerDto) {
     const customerAlreadyExists = await this.prisma.customer.findFirst({
       where: {
         OR: [{ cpf }, { phones: { some: { phoneNumber } } }],
@@ -46,7 +46,11 @@ export class CustomerService {
         countryCode,
         phoneNumber,
         isMain: true,
-        customerId: customer.id,
+        customer: {
+          connect: {
+            id: customer.id,
+          },
+        },
       },
     })
 
@@ -59,15 +63,17 @@ export class CustomerService {
         postalCode,
         state,
         streetAddress,
-        customerId: customer.id,
         isMain: true,
+        customer: {
+          connect: {
+            id: customer.id,
+          },
+        },
       },
     })
 
     return {
       id: customer.id,
-      firstName: customer.firstName,
-      lastName: customer.lastName,
     }
   }
 
@@ -85,16 +91,15 @@ export class CustomerService {
     }
   }
 
-  async login(loginCustomerDto: LoginCustomerDto) {
+  async signIn({ cpf, password }: SignInCustomerDto) {
     const customer = await this.prisma.customer.findUnique({
       where: {
-        cpf: loginCustomerDto.cpf,
+        cpf,
       },
     })
 
     if (!customer) throw new BadRequestException('Customer not found')
-
-    if (customer.password !== loginCustomerDto.password) throw new BadRequestException('CPF or password incorrect')
+    if (customer.password !== password) throw new BadRequestException('CPF or password incorrect')
 
     return {
       id: customer.id,
