@@ -1,9 +1,21 @@
 import OrderContext from "@/contexts/OrderContext";
+import { Order } from "@/models";
+import { Api } from "@/shared/api";
 import { useContext } from "react";
 import { FaCreditCard, FaMoneyBill } from "react-icons/fa";
 
 const Orders: React.FC = () => {
-  const { order } = useContext(OrderContext);
+  const { order, setOrder } = useContext(OrderContext);
+
+  const handleRemoveProductFromOrder = (productId: number) => {
+    Api.post<Order>(`order/${order.id}/remove-product`, { productId }).then(
+      (orderNew) => {
+        if (orderNew) {
+          setOrder(orderNew);
+        }
+      }
+    );
+  };
 
   return (
     <>
@@ -11,35 +23,46 @@ const Orders: React.FC = () => {
         <div className="p-10 text-xl flex flex-col gap-10">
           <h1 className="text-4xl text-gray-300">Itens em seu pedido</h1>
 
-          <div className="flex flex-wrap -mx-4">
+          <div className="grid grid-cols-4 gap-12">
             {order.products.map((productOnOrder) => (
-              <div key={productOnOrder.productId} className="w-1/4 px-4 mb-2">
-                <div className="flex gap-2 bg-orange-500 rounded-xl">
-                  <div className="rounded-full h-4 w-4 m-4 bg-zinc-900" />
-                  <p className="text-md text-zinc-800 font-bold text-center mt-2">
-                    {productOnOrder.product.name}
-                  </p>
+              <div
+                key={productOnOrder.productId}
+                className="flex flex-col rounded-2xl gap-2 pt-20 pb-4 bg-[#030303] text-white"
+              >
+                <p className="text-md font-semibold text-center uppercase text-3xl">
+                  {productOnOrder.product.name}
+                </p>
+                <div className="flex justify-evenly py-20">
+                  <div className="uppercase flex flex-col items-end">
+                    <p>Quantidade:</p>
+                    <p>Valor unitário:</p>
+                    <p>Valor total:</p>
+                  </div>
+                  <div>
+                    <p>{productOnOrder.quantity}</p>
+                    <p>R$ {productOnOrder.product.price}</p>
+                    <p>
+                      R${" "}
+                      {(
+                        productOnOrder.quantity *
+                        parseFloat(productOnOrder.product.price)
+                      ).toFixed(2)}
+                    </p>
+                  </div>
                 </div>
-                <div className="mx-2">
-                  <p>
-                    {productOnOrder.quantity}x {productOnOrder.product.price}
-                  </p>
-                  <p className="mb-2">
-                    <span className="font-bold text-gray-400">R$</span>{" "}
-                    {(
-                      productOnOrder.quantity *
-                      parseFloat(productOnOrder.product.price)
-                    ).toFixed(2)}
-                  </p>
+                <div className="grid grid-cols-2 justify-end items-end gap-4 mx-4">
+                  <button
+                    onClick={() =>
+                      handleRemoveProductFromOrder(productOnOrder.productId)
+                    }
+                    className="bg-red-500 py-2 font-semibold rounded-full"
+                  >
+                    Remover
+                  </button>
                 </div>
               </div>
             ))}
           </div>
-
-          <div className="text-gray-400 ml-4">
-            <p>Nenhum item no seu pedido</p>
-          </div>
-
           <div>
             <p>VALOR TOTAL</p>
             <p className="text-3xl text-gray-300">

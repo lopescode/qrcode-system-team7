@@ -70,7 +70,7 @@ const Menu: React.FC = () => {
   };
 
   const handleSignInSubmit = async (data: any) => {
-    const customerFetched = await Api.post<Customer>("customer/login", data);
+    const customerFetched = await Api.post<Customer>("customer/sign-in", data);
 
     if (customerFetched) {
       toast("Logado com sucesso!", {
@@ -80,6 +80,14 @@ const Menu: React.FC = () => {
       });
 
       setCustomer(customerFetched);
+
+      const orderOpened = await Api.get<Order[]>(
+        `order?customerId=${customerFetched.id}&paymentStatus=PENDING`
+      );
+      if (orderOpened && orderOpened.length > 0) {
+        setOrder(orderOpened[0]);
+        return;
+      }
 
       const orderFetched = await Api.post<Order>("order", {
         customerId: customerFetched.id,
@@ -95,7 +103,7 @@ const Menu: React.FC = () => {
   };
 
   const handleSignUpSubmit = async (data: any) => {
-    const customerFetched = await Api.post<Customer>("customer", data);
+    const customerFetched = await Api.post<Customer>("customer/sign-up", data);
 
     if (customerFetched) {
       toast("Cadastrado com sucesso!", {
