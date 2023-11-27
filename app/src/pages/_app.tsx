@@ -1,33 +1,40 @@
-import CustomerContext from "@/contexts/CustomerContext";
-import OrderContext from "@/contexts/OrderContext";
-import { Customer, Order } from "@/models";
-import { Metadata } from "next";
-import { type AppProps } from "next/app";
-import React, { useState } from "react";
+import { AppContext } from "@/contexts/AppContext";
+import "@/styles/globals.css";
+import { type Session } from "next-auth";
+import { SessionProvider } from "next-auth/react";
+import { type AppType } from "next/app";
+import { useState } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "tailwindcss/tailwind.css";
-import "./globals.css";
-import RootLayout from "./layout";
 
-export const metadata: Metadata = {
-  title: "Menu Digital",
-  description: "Menú digital para restaurantes",
-};
-
-const App: React.FC<AppProps> = ({ Component, pageProps }) => {
-  const [order, setOrder] = useState<Order>({} as Order);
-  const [customer, setCustomer] = useState<Customer>({} as Customer);
-
+const App: AppType<{ session: Session | null }> = ({
+  Component,
+  pageProps: { session, ...pageProps },
+}) => {
+  const [currentPanel, setCurrentPanel] = useState<string>("menu");
   return (
-    <CustomerContext.Provider value={{ customer, setCustomer }}>
-      <OrderContext.Provider value={{ order, setOrder }}>
-        <RootLayout>
-          <Component {...pageProps} />
-          <ToastContainer />
-        </RootLayout>
-      </OrderContext.Provider>
-    </CustomerContext.Provider>
+    <AppContext.Provider
+      value={{
+        currentPanel,
+        setCurrentPanel,
+      }}
+    >
+      <SessionProvider session={session}>
+        <ToastContainer
+          position="bottom-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
+        <Component {...pageProps} />
+      </SessionProvider>
+    </AppContext.Provider>
   );
 };
 

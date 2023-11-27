@@ -1,15 +1,41 @@
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { Sidebar } from "@/components/Sidebar";
+import { MenuCategoriesPanel } from "@/components/panels/MenuCategoriesPanel";
+import { MenuProductsPanel } from "@/components/panels/MenuProductsPanel";
+import { OrderPanel } from "@/components/panels/OrderPanel";
+import { type NextPage } from "next";
+import Head from "next/head";
+import { useRouter } from "next/router";
+import { useMemo } from "react";
 
-const IndexPage = () => {
+const panelMap = new Map<string, JSX.Element>([
+  ["menu-categories", <MenuCategoriesPanel key={Math.random()} />],
+  ["menu-products", <MenuProductsPanel key={Math.random()} />],
+  ["order", <OrderPanel key={Math.random()} />],
+]);
+
+const Index: NextPage = () => {
   const router = useRouter();
+  const { panel } = router.query;
 
-  useEffect(() => {
-    // Redirecionar para a rota "/menu" quando a página carregar
-    router.push('/menu');
-  }, []);
+  const panelJSXElement = useMemo(() => {
+    return panelMap.get(panel as string);
+  }, [panel]);
 
-  return <div>Redirecionando para /menu...</div>;
+  return (
+    <>
+      <Head>
+        <title>Cardápio Online</title>
+        <meta name="description" content="Cardápio online app" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </Head>
+      <main className="h-min-screen max-w-screen flex w-full flex-row overflow-x-hidden bg-heavy-metal">
+        <div className="h-screen">
+          <Sidebar />
+        </div>
+        <div className="h-screen w-full overflow-auto">{panelJSXElement}</div>
+      </main>
+    </>
+  );
 };
 
-export default IndexPage;
+export default Index;

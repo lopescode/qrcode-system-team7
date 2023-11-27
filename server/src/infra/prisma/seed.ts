@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { productCategoriesSeedList, productIngredientsSeedList, productSeedList, tableSeedList } from './constants/seed'
+import { productCategoriesSeedList, productIngredientsSeedList, productSeedList } from './constants/seed'
 
 const prisma = new PrismaClient()
 
@@ -44,7 +44,7 @@ async function main(): Promise<void> {
           })
 
           if (ingredient) {
-            await prisma.ingredientsOnProduct.create({
+            await prisma.ingredientOnProduct.create({
               data: {
                 productId: productCreated.id,
                 ingredientId: ingredient.id,
@@ -53,11 +53,6 @@ async function main(): Promise<void> {
           }
         })
       }
-    })
-
-    console.log('Seeding tables...')
-    await prisma.table.createMany({
-      data: tableSeedList,
     })
   } catch (error) {
     console.error(error)

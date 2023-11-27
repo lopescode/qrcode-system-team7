@@ -1,18 +1,20 @@
+import { CreateProductCategoryDto } from '@/modules/product-category/dto/create-product-category.dto'
+import { ProductCategoryService } from '@/modules/product-category/product-category.service'
 import {
   Body,
   Controller,
   Get,
-  Param,
+  HttpStatus,
   Post,
+  Query,
+  Res,
   UploadedFile,
   UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { ProductCategory } from '@prisma/client'
-import { CreateProductCategoryDto } from './dto/create-product-category.dto'
-import { ProductCategoryService } from './product-category.service'
+import { Response } from 'express'
 
 @Controller('product-category')
 export class ProductCategoryController {
@@ -21,20 +23,35 @@ export class ProductCategoryController {
   @Post()
   @UsePipes(ValidationPipe)
   @UseInterceptors(FileInterceptor('file'))
-  create(
+  async create(
+    @Res() response: Response,
     @UploadedFile() imageFile: Express.Multer.File,
     @Body() createProductCategoryDto: CreateProductCategoryDto
-  ): Promise<ProductCategory> {
-    return this.productCategoryService.create({ ...createProductCategoryDto, imageFile })
+  ) {
+    const data = await this.productCategoryService.create({ ...createProductCategoryDto, imageFile })
+
+    return response.status(HttpStatus.CREATED).json({
+      statusCode: HttpStatus.CREATED,
+      timestamp: new Date().toISOString(),
+      path: '/product-category',
+      result: Array(data).flat(),
+    })
   }
 
   @Get()
-  findAll(): Promise<ProductCategory[]> {
-    return this.productCategoryService.findAll()
-  }
+  async findAll(@Res() response: Response, @Query('includeProducts') includeProducts: boolean) {
+    console.log(includeProducts)
+    const data = await this.productCategoryService.findAll({
+      include: {
+        products: includeProducts,
+      },
+    })
 
-  @Get(':id')
-  findOne(@Param('id') id: string): Promise<ProductCategory | null> {
-    return this.productCategoryService.findOne(+id)
+    return response.status(HttpStatus.OK).json({
+      statusCode: HttpStatus.OK,
+      timestamp: new Date().toISOString(),
+      path: '/product-category',
+      result: Array(data).flat(),
+    })
   }
 }

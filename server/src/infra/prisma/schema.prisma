@@ -10,56 +10,47 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Table {
-  id          Int     @id @default(autoincrement())
-  number      Int     @unique
-  isAvailable Boolean @default(true)
-  orders      Order[]
-}
-
-model CustomerPhone {
-  id          Int      @id @default(autoincrement())
+model UserPhone {
+  id          Int    @id @default(autoincrement())
   countryCode String
   areaCode    String
-  phoneNumber String   @unique
-  isMain      Boolean  @default(false)
-  customer    Customer @relation(fields: [customerId], references: [id])
-  customerId  Int
+  phoneNumber String @unique
+  user        User   @relation(fields: [userId], references: [id])
+  userId      Int
 }
 
-model CustomerAddress {
-  id            Int      @id @default(autoincrement())
+model UserAddress {
+  id            Int     @id @default(autoincrement())
   streetAddress String
-  complement    String?
   neighborhood  String
   city          String
   state         String
   country       String
   postalCode    String
-  isMain        Boolean  @default(false)
-  customer      Customer @relation(fields: [customerId], references: [id])
-  customerId    Int
+  complement    String?
+  user          User    @relation(fields: [userId], references: [id])
+  userId        Int
 }
 
-model Customer {
-  id        Int               @id @default(autoincrement())
-  cpf       String            @unique
+model User {
+  id        Int           @id @default(autoincrement())
+  cpf       String        @unique
   password  String
   firstName String
   lastName  String
-  phones    CustomerPhone[]
-  addresses CustomerAddress[]
+  phones    UserPhone[]
+  addresses UserAddress[]
   orders    Order[]
 }
 
 model ProductIngredient {
-  id          Int                    @id @default(autoincrement())
-  name        String                 @unique
+  id          Int                   @id @default(autoincrement())
+  name        String                @unique
   description String?
-  products    IngredientsOnProduct[]
+  products    IngredientOnProduct[]
 }
 
-model IngredientsOnProduct {
+model IngredientOnProduct {
   product      Product           @relation(fields: [productId], references: [id])
   productId    Int
   ingredient   ProductIngredient @relation(fields: [ingredientId], references: [id])
@@ -78,15 +69,15 @@ model ProductCategory {
 }
 
 model Product {
-  id          Int                    @id @default(autoincrement())
-  name        String                 @unique
-  description String
-  price       String
-  imageUrl    String
-  category    ProductCategory        @relation(fields: [categoryId], references: [id])
-  categoryId  Int
-  orders      ProductsOnOrder[]
-  ingredients IngredientsOnProduct[]
+  id                  Int                   @id @default(autoincrement())
+  name                String                @unique
+  description         String
+  price               String
+  imageUrl            String
+  category            ProductCategory       @relation(fields: [categoryId], references: [id])
+  categoryId          Int
+  orders              ProductsOnOrder[]
+  ingredientOnProduct IngredientOnProduct[]
 }
 
 model ProductsOnOrder {
@@ -107,11 +98,10 @@ enum PaymentStatus {
 model Order {
   id            Int               @id @default(autoincrement())
   createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
   price         String
   paymentStatus PaymentStatus
-  customer      Customer?         @relation(fields: [customerId], references: [id])
-  customerId    Int?
-  table         Table?            @relation(fields: [tableId], references: [id])
-  tableId       Int?
+  user          User              @relation(fields: [userId], references: [id])
+  userId        Int
   products      ProductsOnOrder[]
 }

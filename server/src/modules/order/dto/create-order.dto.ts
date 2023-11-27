@@ -1,11 +1,9 @@
-import { IsNumber, IsOptional } from 'class-validator'
+import { ApiProperty } from '@nestjs/swagger'
+import { IsNotEmpty, IsNumber } from 'class-validator'
 
 export class CreateOrderDto {
+  @ApiProperty()
   @IsNumber()
-  @IsOptional()
-  customerId: number
-
-  @IsNumber()
-  @IsOptional()
-  tableId: number
+  @IsNotEmpty()
+  userId: number
 }

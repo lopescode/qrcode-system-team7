@@ -1,241 +1,104 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { ExceptionService } from '@/infra/exception/exception.service'
+import { PrismaService } from '@/infra/prisma/prisma.service'
+import { IOrder } from '@/modules/order/domain/order.interface'
+import { CreateOrderDto } from '@/modules/order/dto/create-order.dto'
+import { UpdateOrderDto } from '@/modules/order/dto/update-order.dto'
+import { Injectable } from '@nestjs/common'
 import { Order, PaymentStatus } from '@prisma/client'
-import { PrismaService } from 'src/infra/prisma/prisma.service'
-import { AddProductOnOrderDto } from './dto/add-product-on-order.dto'
-import { CreateOrderDto } from './dto/create-order.dto'
-import { UpdateOrderDto } from './dto/update-order.dto'
 
 @Injectable()
-export class OrderService {
-  constructor(private readonly prisma: PrismaService) {}
+export class OrderService implements IOrder {
+  constructor(private readonly prismaService: PrismaService, private readonly exceptionService: ExceptionService) {}
 
-  async create({ customerId, tableId }: CreateOrderDto): Promise<Order> {
-    if (!customerId && !tableId) throw new BadRequestException('You must provide a customer or a table')
-    if (customerId && tableId) throw new BadRequestException('You must provide only a customer or a table')
+  async findOne(params: { where: { id: number } }): Promise<Order> {
+    const orderExits = await this.prismaService.order.findUnique({
+      where: {
+        id: params.where.id,
+      },
+    })
 
-    if (customerId) {
-      const customer = await this.prisma.customer.findUnique({
-        where: {
-          id: customerId,
-        },
+    if (!orderExits) {
+      this.exceptionService.notFoundException({
+        message: 'Pedido não encontrado',
       })
-
-      if (!customer) throw new BadRequestException('Customer not found')
-
-      const customerHasOrderUnpaid = await this.prisma.order.findFirst({
-        where: {
-          paymentStatus: {
-            not: 'PAID',
-          },
-          customerId,
-          tableId,
-        },
-      })
-
-      if (customerHasOrderUnpaid) throw new BadRequestException('Customer already has an unpaid order')
-    } else if (tableId) {
-      const table = await this.prisma.table.findUnique({
-        where: {
-          id: tableId,
-        },
-      })
-
-      if (!table) throw new BadRequestException('Table not found')
-
-      const tableHasOrderUnpaid = await this.prisma.order.findFirst({
-        where: {
-          paymentStatus: {
-            not: 'PAID',
-          },
-          tableId,
-        },
-      })
-
-      if (tableHasOrderUnpaid) throw new BadRequestException('Table already has an unpaid order')
     }
 
-    return await this.prisma.order.create({
+    return orderExits
+  }
+
+  async findAll(params: {
+    where: { userId: number; paymentStatus: PaymentStatus }
+    include: { products: boolean }
+    limit: number
+  }): Promise<Order[]> {
+    return await this.prismaService.order.findMany({
+      where: {
+        userId: params.where.userId,
+        paymentStatus: params.where.paymentStatus,
+      },
+      include: {
+        products: params.include.products,
+      },
+      take: params.limit,
+    })
+  }
+
+  async create({ userId }: CreateOrderDto): Promise<Order> {
+    const userExists = await this.prismaService.user.findUnique({
+      where: {
+        id: userId,
+      },
+    })
+
+    if (!userExists) {
+      this.exceptionService.notFoundException({
+        message: 'Usuário não encontrado',
+      })
+    }
+
+    const userHasOrderUnpaid = await this.prismaService.order.findFirst({
+      where: {
+        paymentStatus: {
+          not: 'PAID',
+        },
+        userId,
+      },
+    })
+
+    if (userHasOrderUnpaid) {
+      this.exceptionService.unauthorizedException({
+        message: 'Usuário já possui um pedido em aberto',
+      })
+    }
+
+    return await this.prismaService.order.create({
       data: {
         paymentStatus: PaymentStatus.PENDING,
         price: '0',
-        customerId,
-        tableId,
+        userId,
       },
     })
   }
 
-  async addProduct(id: number, { productId }: AddProductOnOrderDto): Promise<Order> {
-    const product = await this.prisma.product.findUnique({
+  async update(params: { where: { id: number }; data: UpdateOrderDto }): Promise<Order> {
+    const orderExists = await this.prismaService.order.findUnique({
       where: {
-        id: productId,
+        id: params.where.id,
       },
     })
 
-    if (!product) throw new BadRequestException('Product not found')
-
-    const order = await this.prisma.order.findUnique({
-      where: {
-        id,
-      },
-      include: {
-        products: true,
-      },
-    })
-
-    if (!order) throw new BadRequestException('Order not found')
-
-    const productAlreadyAdded = order.products.find(product => product.productId === productId)
-    const productQuantity = productAlreadyAdded ? productAlreadyAdded.quantity + 1 : 1
-
-    if (productAlreadyAdded) {
-      await this.prisma.productsOnOrder.update({
-        data: {
-          quantity: productQuantity,
-        },
-        where: {
-          productId_orderId: {
-            orderId: id,
-            productId,
-          },
-        },
+    if (!orderExists) {
+      this.exceptionService.badRequestException({
+        message: 'Pedido não encontrado',
       })
     }
 
-    const price = String(Number(order.price) + Number(product.price))
-
-    return await this.prisma.order.update({
+    return await this.prismaService.order.update({
       where: {
-        id,
+        id: orderExists.id,
       },
       data: {
-        price,
-        products: {
-          connectOrCreate: {
-            create: {
-              quantity: productQuantity,
-              productId,
-            },
-            where: {
-              productId_orderId: {
-                orderId: id,
-                productId,
-              },
-            },
-          },
-        },
-      },
-      include: {
-        products: {
-          include: {
-            product: true,
-          },
-        },
-      },
-    })
-  }
-
-  async removeProduct(id: number, { productId }: AddProductOnOrderDto): Promise<Order> {
-    const product = await this.prisma.product.findUnique({
-      where: {
-        id: productId,
-      },
-    })
-
-    if (!product) throw new BadRequestException('Product not found')
-
-    const order = await this.prisma.order.findUnique({
-      where: {
-        id,
-      },
-      include: {
-        products: true,
-      },
-    })
-
-    if (!order) throw new BadRequestException('Order not found')
-
-    const productAlreadyAdded = order.products.find(product => product.productId === productId)
-
-    if (!productAlreadyAdded) throw new BadRequestException('Product not found on order')
-
-    const quantity = await this.prisma.productsOnOrder.delete({
-      where: {
-        productId_orderId: {
-          orderId: id,
-          productId,
-        },
-      },
-    })
-
-    const price = String(Number(order.price) - Number(quantity.quantity) * Number(product.price))
-
-    return await this.prisma.order.update({
-      where: {
-        id,
-      },
-      data: {
-        price,
-      },
-      include: {
-        products: {
-          include: {
-            product: true,
-          },
-        },
-      },
-    })
-  }
-
-  async update(id: number, { paymentStatus }: UpdateOrderDto): Promise<Order> {
-    return await this.prisma.order.update({
-      data: {
-        paymentStatus,
-      },
-      where: {
-        id,
-      },
-    })
-  }
-
-  async findAll(customerId: number, status: PaymentStatus): Promise<Order[]> {
-    return await this.prisma.order.findMany({
-      where: {
-        customerId: Number(customerId),
-        paymentStatus: status,
-      },
-      include: {
-        customer: true,
-        products: {
-          include: {
-            product: true,
-          },
-        },
-        table: true,
-      },
-    })
-  }
-
-  async findOne(id: number): Promise<Order | null> {
-    return await this.prisma.order.findUnique({
-      where: {
-        id,
-      },
-      include: {
-        customer: true,
-        products: {
-          include: {
-            product: true,
-          },
-        },
-        table: true,
-      },
-    })
-  }
-
-  async remove(id: number): Promise<Order> {
-    return await this.prisma.order.delete({
-      where: {
-        id,
+        ...params.data,
       },
     })
   }

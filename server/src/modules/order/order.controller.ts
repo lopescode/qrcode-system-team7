@@ -1,9 +1,21 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UsePipes, ValidationPipe } from '@nestjs/common'
-import { Order, PaymentStatus } from '@prisma/client'
-import { AddProductOnOrderDto } from './dto/add-product-on-order.dto'
-import { CreateOrderDto } from './dto/create-order.dto'
-import { UpdateOrderDto } from './dto/update-order.dto'
-import { OrderService } from './order.service'
+import { CreateOrderDto } from '@/modules/order/dto/create-order.dto'
+import { UpdateOrderDto } from '@/modules/order/dto/update-order.dto'
+import { OrderService } from '@/modules/order/order.service'
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Res,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common'
+import { PaymentStatus } from '@prisma/client'
+import { Response } from 'express'
 
 @Controller('order')
 export class OrderController {
@@ -11,43 +23,71 @@ export class OrderController {
 
   @Post()
   @UsePipes(ValidationPipe)
-  async create(@Body() createOrderDto: CreateOrderDto): Promise<Order> {
-    return this.orderService.create(createOrderDto)
-  }
+  async create(@Res() response: Response, @Body() createOrderDto: CreateOrderDto) {
+    const data = await this.orderService.create(createOrderDto)
 
-  @Post(':id/add-product')
-  @UsePipes(ValidationPipe)
-  async addProduct(@Param('id') id: string, @Body() addProductOnOrderDto: AddProductOnOrderDto): Promise<Order> {
-    return this.orderService.addProduct(+id, addProductOnOrderDto)
-  }
-
-  @Post(':id/remove-product')
-  @UsePipes(ValidationPipe)
-  async removeProduct(@Param('id') id: string, @Body() addProductOnOrderDto: AddProductOnOrderDto): Promise<Order> {
-    return this.orderService.removeProduct(+id, addProductOnOrderDto)
+    return response.status(HttpStatus.CREATED).json({
+      statusCode: HttpStatus.CREATED,
+      timeStamp: new Date().toISOString(),
+      path: '/order',
+      result: Array(data).flat(),
+    })
   }
 
   @Patch(':id')
   @UsePipes(ValidationPipe)
-  async update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto): Promise<Order> {
-    return this.orderService.update(+id, updateOrderDto)
+  async update(@Res() response: Response, @Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
+    const data = await this.orderService.update({
+      where: { id: Number(id) },
+      data: updateOrderDto,
+    })
+
+    return response.status(HttpStatus.OK).json({
+      statusCode: HttpStatus.OK,
+      timeStamp: new Date().toISOString(),
+      path: `/order/${id}`,
+      result: Array(data).flat(),
+    })
   }
 
   @Get()
   async findAll(
-    @Query('customerId') customerId: number,
-    @Query('paymentStatus') paymentStatus: PaymentStatus
-  ): Promise<Order[]> {
-    return this.orderService.findAll(customerId, paymentStatus)
+    @Res() response: Response,
+    @Query('userId') userId: number,
+    @Query('paymentStatus') paymentStatus: PaymentStatus,
+    @Query('limit') limit: number,
+    @Query('includeProduct') includeProduct: boolean
+  ) {
+    const data = await this.orderService.findAll({
+      where: {
+        userId: userId ? Number(userId) : 0,
+        paymentStatus: paymentStatus ? paymentStatus : 'PENDING',
+      },
+      include: {
+        products: !!includeProduct,
+      },
+      limit: limit ? Number(limit) : 10,
+    })
+
+    return response.status(HttpStatus.OK).json({
+      statusCode: HttpStatus.OK,
+      timeStamp: new Date().toISOString(),
+      path: '/order',
+      result: Array(data).flat(),
+    })
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Order | null> {
-    return this.orderService.findOne(+id)
-  }
+  async findOne(@Res() response: Response, @Param('id') id: string) {
+    const data = await this.orderService.findOne({
+      where: { id: Number(id) },
+    })
 
-  @Delete(':id')
-  async remove(@Param('id') id: string): Promise<Order> {
-    return this.orderService.remove(+id)
+    return response.status(HttpStatus.OK).json({
+      statusCode: HttpStatus.OK,
+      timeStamp: new Date().toISOString(),
+      path: `/order/${id}`,
+      result: Array(data).flat(),
+    })
   }
 }

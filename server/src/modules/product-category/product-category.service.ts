@@ -1,17 +1,18 @@
+import { PrismaService } from '@/infra/prisma/prisma.service'
+import { ImageService } from '@/modules/image/image.service'
+import { IProductCategory } from '@/modules/product-category/domain/product-category.interface'
+import { CreateProductCategoryDto } from '@/modules/product-category/dto/create-product-category.dto'
 import { Injectable } from '@nestjs/common'
 import { ProductCategory } from '@prisma/client'
-import { ImageHelper } from 'src/helpers/imageHelper'
-import { PrismaService } from 'src/infra/prisma/prisma.service'
-import { CreateProductCategoryDto } from './dto/create-product-category.dto'
 
 @Injectable()
-export class ProductCategoryService {
-  constructor(private readonly prisma: PrismaService) {}
+export class ProductCategoryService implements IProductCategory {
+  constructor(private readonly prismaService: PrismaService, private readonly imageService: ImageService) {}
 
   async create({ description, imageFile, name }: CreateProductCategoryDto): Promise<ProductCategory> {
-    const imageUrl = await ImageHelper.uploadImage(imageFile, 'products')
+    const imageUrl = await this.imageService.uploadImage({ image: imageFile, filePath: 'products' })
 
-    return this.prisma.productCategory.create({
+    return await this.prismaService.productCategory.create({
       data: {
         name,
         description,
@@ -20,21 +21,10 @@ export class ProductCategoryService {
     })
   }
 
-  findAll(): Promise<ProductCategory[]> {
-    return this.prisma.productCategory.findMany({
+  async findAll(params: { include: { products: boolean } }): Promise<ProductCategory[]> {
+    return await this.prismaService.productCategory.findMany({
       include: {
-        products: true,
-      },
-    })
-  }
-
-  findOne(id: number): Promise<ProductCategory | null> {
-    return this.prisma.productCategory.findUnique({
-      where: {
-        id,
-      },
-      include: {
-        products: true,
+        products: !!params.include.products,
       },
     })
   }

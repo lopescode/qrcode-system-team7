@@ -1,8 +1,12 @@
+import { ApiProperty } from '@nestjs/swagger'
 import { PaymentStatus } from '@prisma/client'
-import { IsNotEmpty, IsString } from 'class-validator'
+import { IsOptional, IsString } from 'class-validator'
 
 export class UpdateOrderDto {
+  @ApiProperty({
+    required: false,
+  })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   paymentStatus: PaymentStatus
 }

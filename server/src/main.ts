@@ -1,15 +1,30 @@
 import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
 import { NestExpressApplication } from '@nestjs/platform-express'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import * as path from 'path'
+import { AppModule } from './app.module'
+import { AllExceptionFilter } from './infra/filter/all.exception.filter'
+import { LoggerService } from './infra/logger/logger.service'
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
 
-  app.enableCors()
+  app.useGlobalFilters(new AllExceptionFilter(new LoggerService()))
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,PUT,PATCH,POST,DELETE',
+  })
   app.useStaticAssets(path.join(__dirname, '..', 'uploads'))
+  const config = new DocumentBuilder()
+    .setTitle('Cardápio online')
+    .setDescription('Descrição da API do Cardápio Online')
+    .setVersion('1.0')
+    .addTag('cardapio-online')
+    .build()
+  const document = SwaggerModule.createDocument(app, config)
+  SwaggerModule.setup('api', app, document)
 
-  await app.listen(3000)
+  await app.listen(4000)
 }
 
 bootstrap().catch((error: Error) => {
