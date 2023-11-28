@@ -1,20 +1,30 @@
 import { HttpRequestHelper } from "@/helpers/HTTPRequestHelper";
 import { Order } from "@/types/Api";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import router from "next/router";
+import { useEffect, useMemo, useState } from "react";
 import { FaCreditCard, FaMoneyBill } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 export const OrderPanel = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
 
   const { data: session } = useSession();
 
+  const accessToken = useMemo(() => {
+    return session?.user.access_token;
+  }, [session]);
+
   useEffect(() => {
+    if (!session?.user.order_id) {
+      router.push("/?panel=menu");
+      return;
+    }
+
     const fetchOrder = async () => {
       const response = await HttpRequestHelper.get(
-        `order?userId=${session?.user.id}&paymentStatus=PENDING&includeProducts=true`
+        `order/${session?.user.order_id}`,
+        accessToken
       );
 
       if (!response || !response.result) {
@@ -22,15 +32,28 @@ export const OrderPanel = () => {
         return;
       }
 
-      setOrders(response.result);
-      setCurrentOrder(response.result[0]);
+      setCurrentOrder(response.result[response.result.length - 1]);
     };
 
     fetchOrder();
-  }, []);
+  }, [session?.user.order_id, accessToken]);
 
-  const handleRemoveProductFromOrder = (productId: number) => {
-    console.log("remove product");
+  const handleRemoveProductFromOrder = async (productId: number) => {
+    const response = await HttpRequestHelper.post(
+      `order/${session?.user.order_id}/add-product`,
+      {
+        productId,
+        quantity: 1,
+      },
+      accessToken
+    );
+
+    if (!response || !response.result) {
+      toast.error(response?.message ?? "Houve um erro inesperado");
+      return;
+    }
+
+    toast.success("Produto removido do pedido com sucesso.");
   };
 
   return (
@@ -121,6 +144,7 @@ export const OrderPanel = () => {
           </div>
         </div>
       )}
+      ;
     </>
   );
 };

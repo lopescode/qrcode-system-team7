@@ -1,9 +1,9 @@
-import { PrismaService } from '@/infra/prisma/prisma.service'
-import { ImageService } from '@/modules/image/image.service'
-import { IProductCategory } from '@/modules/product-category/domain/product-category.interface'
-import { CreateProductCategoryDto } from '@/modules/product-category/dto/create-product-category.dto'
+import { ImageService } from '@/handlers/image/image.service'
+import { PrismaService } from '@/infra/database/prisma/prisma.service'
 import { Injectable } from '@nestjs/common'
 import { ProductCategory } from '@prisma/client'
+import { IProductCategory } from './domain/product-category.interface'
+import { CreateProductCategoryDto } from './dto/create-product-category.dto'
 
 @Injectable()
 export class ProductCategoryService implements IProductCategory {
@@ -24,7 +24,15 @@ export class ProductCategoryService implements IProductCategory {
   async findAll(params: { include: { products: boolean } }): Promise<ProductCategory[]> {
     return await this.prismaService.productCategory.findMany({
       include: {
-        products: !!params.include.products,
+        products: {
+          include: {
+            ingredientOnProduct: {
+              include: {
+                ingredient: true,
+              },
+            },
+          },
+        },
       },
     })
   }

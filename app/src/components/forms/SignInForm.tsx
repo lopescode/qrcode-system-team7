@@ -7,12 +7,12 @@ import * as yup from "yup";
 
 type TSignInFormProps = {
   openSignUpModal: () => void;
-  openIngredienteModal: () => void;
+  openProductModal: () => void;
 };
 
 export const SignInForm = ({
   openSignUpModal,
-  openIngredienteModal,
+  openProductModal,
 }: TSignInFormProps) => {
   const signInSchema = yup.object().shape({
     cpf: yup
@@ -45,9 +45,9 @@ export const SignInForm = ({
       redirect: false,
     });
 
-    if (loginResponse?.status === 200) {
+    if (loginResponse?.ok) {
       toast.success("Login realizado com sucesso.");
-      openIngredienteModal();
+      openProductModal();
       return;
     }
 

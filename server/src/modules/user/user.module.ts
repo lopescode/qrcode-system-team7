@@ -1,12 +1,13 @@
-import { ExceptionModule } from '@/infra/exception/exception.module'
-import { PrismaModule } from '@/infra/prisma/prisma.module'
-import { UserController } from '@/modules/user/user.controller'
-import { UserService } from '@/modules/user/user.service'
+import { ExceptionModule } from '@/handlers/exception/exception.module'
+import { PrismaModule } from '@/infra/database/prisma/prisma.module'
 import { Module } from '@nestjs/common'
+import { UserController } from './user.controller'
+import { UserService } from './user.service'
 
 @Module({
   imports: [PrismaModule, ExceptionModule],
   controllers: [UserController],
   providers: [UserService],
+  exports: [UserService],
 })
 export class UserModule {}

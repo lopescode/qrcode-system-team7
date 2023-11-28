@@ -1,12 +1,14 @@
-import { PrismaModule } from '@/infra/prisma/prisma.module'
-import { ImageModule } from '@/modules/image/image.module'
-import { ProductCategoryController } from '@/modules/product-category/product-category.controller'
-import { ProductCategoryService } from '@/modules/product-category/product-category.service'
+import { ImageModule } from '@/handlers/image/image.module'
+import { PrismaModule } from '@/infra/database/prisma/prisma.module'
 import { Module } from '@nestjs/common'
+import { UserModule } from '../user/user.module'
+import { ProductCategoryController } from './product-category.controller'
+import { ProductCategoryService } from './product-category.service'
 
 @Module({
-  imports: [PrismaModule, ImageModule],
+  imports: [PrismaModule, ImageModule, UserModule],
   controllers: [ProductCategoryController],
   providers: [ProductCategoryService],
+  exports: [ProductCategoryService],
 })
 export class ProductCategoryModule {}

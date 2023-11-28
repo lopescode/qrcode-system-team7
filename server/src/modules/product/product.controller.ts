@@ -9,6 +9,7 @@ import {
   Query,
   Res,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
   UsePipes,
   ValidationPipe,
@@ -16,11 +17,13 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express'
 import { ApiQuery } from '@nestjs/swagger'
 import { Response } from 'express'
+import { AuthGuard } from '../auth/auth.guard'
 
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
   @UsePipes(ValidationPipe)
   @UseInterceptors(FileInterceptor('file'))
@@ -35,7 +38,6 @@ export class ProductController {
     })
 
     return response.status(HttpStatus.CREATED).json({
-      statusCode: HttpStatus.CREATED,
       timeStamp: new Date().toISOString(),
       path: '/product',
       result: Array(data).flat(),
@@ -52,7 +54,6 @@ export class ProductController {
     })
 
     return response.status(HttpStatus.OK).json({
-      statusCode: HttpStatus.OK,
       timeStamp: new Date().toISOString(),
       path: '/product',
       result: Array(data).flat(),

@@ -1,6 +1,6 @@
-import { IEncrypt } from '@/modules/encrypt/domain/encrypt.interface'
 import { Injectable } from '@nestjs/common'
 import { createHash } from 'crypto'
+import { IEncrypt } from './domain/encrypt.interface'
 
 @Injectable()
 export class EncryptService implements IEncrypt {

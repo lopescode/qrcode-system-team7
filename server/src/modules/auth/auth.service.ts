@@ -1,12 +1,12 @@
-import { ExceptionService } from '@/infra/exception/exception.service'
-import { PrismaService } from '@/infra/prisma/prisma.service'
-import { IAuth } from '@/modules/auth/domain/auth.interface'
-import { SignInDto } from '@/modules/auth/dto/sign-in.dto'
-import { SignUpDto } from '@/modules/auth/dto/sign-up.dto'
-import { EncryptService } from '@/modules/encrypt/encrypt.service'
+import { EncryptService } from '@/handlers/encrypt/encrypt.service'
+import { ExceptionService } from '@/handlers/exception/exception.service'
+import { PrismaService } from '@/infra/database/prisma/prisma.service'
 import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { User } from '@prisma/client'
+import { Order, User } from '@prisma/client'
+import { IAuth } from './domain/auth.interface'
+import { SignInDto } from './dto/sign-in.dto'
+import { SignUpDto } from './dto/sign-up.dto'
 
 @Injectable()
 export class AuthService implements IAuth {
@@ -20,12 +20,12 @@ export class AuthService implements IAuth {
     private readonly jwtService: JwtService
   ) {}
 
-  createToken(user: User) {
+  createToken(user: User, order: Order) {
     return {
       access_token: this.jwtService.sign(
         {
           id: user.id,
-          cpf: user.cpf,
+          order_id: order.id,
         },
         {
           secret: process.env.JWT_SECRET,
@@ -35,8 +35,6 @@ export class AuthService implements IAuth {
           audience: this.audience,
         }
       ),
-      id: user.id,
-      cpf: user.cpf,
     }
   }
 
@@ -71,7 +69,26 @@ export class AuthService implements IAuth {
       })
     }
 
-    return this.createToken(userExists)
+    const order =
+      (await this.prismaService.order.findFirst({
+        where: {
+          userId: userExists.id,
+          paymentStatus: 'PENDING',
+        },
+      })) ??
+      (await this.prismaService.order.create({
+        data: {
+          paymentStatus: 'PENDING',
+          price: '0.00',
+          user: {
+            connect: {
+              id: userExists.id,
+            },
+          },
+        },
+      }))
+
+    return this.createToken(userExists, order)
   }
 
   async signUp(signUpDto: SignUpDto) {
@@ -138,7 +155,7 @@ export class AuthService implements IAuth {
       },
     })
 
-    await this.prismaService.order.create({
+    const order = await this.prismaService.order.create({
       data: {
         paymentStatus: 'PENDING',
         price: '0.00',
@@ -150,6 +167,6 @@ export class AuthService implements IAuth {
       },
     })
 
-    return this.createToken(user)
+    return this.createToken(user, order)
   }
 }

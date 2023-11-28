@@ -1,13 +1,15 @@
-import { ExceptionModule } from '@/infra/exception/exception.module'
-import { PrismaModule } from '@/infra/prisma/prisma.module'
-import { ImageModule } from '@/modules/image/image.module'
-import { ProductController } from '@/modules/product/product.controller'
-import { ProductService } from '@/modules/product/product.service'
+import { ExceptionModule } from '@/handlers/exception/exception.module'
+import { ImageModule } from '@/handlers/image/image.module'
+import { PrismaModule } from '@/infra/database/prisma/prisma.module'
 import { Module } from '@nestjs/common'
+import { UserModule } from '../user/user.module'
+import { ProductController } from './product.controller'
+import { ProductService } from './product.service'
 
 @Module({
-  imports: [PrismaModule, ImageModule, ExceptionModule],
+  imports: [PrismaModule, ImageModule, ExceptionModule, UserModule],
   controllers: [ProductController],
   providers: [ProductService],
+  exports: [ProductService],
 })
 export class ProductModule {}

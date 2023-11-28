@@ -1,8 +1,8 @@
-import { ExceptionService } from '@/infra/exception/exception.service'
-import { PrismaService } from '@/infra/prisma/prisma.service'
-import { IUser } from '@/modules/user/domain/user.interface'
+import { ExceptionService } from '@/handlers/exception/exception.service'
+import { PrismaService } from '@/infra/database/prisma/prisma.service'
 import { Injectable } from '@nestjs/common'
 import { User } from '@prisma/client'
+import { IUser } from './domain/user.interface'
 
 @Injectable()
 export class UserService implements IUser {

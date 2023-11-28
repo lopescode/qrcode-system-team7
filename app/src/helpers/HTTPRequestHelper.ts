@@ -1,11 +1,13 @@
 import axios from "axios";
 
 type TGenericResponseData = {
-  statusCode: number;
-  path: string;
   timestamp: string;
+  path: string;
   message?: any[];
-  error?: string;
+  error?: {
+    message: string;
+    statusCode: number;
+  };
 };
 
 type TPostResponseData = TGenericResponseData & {

@@ -9,17 +9,20 @@ import {
   Query,
   Res,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { Response } from 'express'
+import { AuthGuard } from '../auth/auth.guard'
 
 @Controller('product-category')
 export class ProductCategoryController {
   constructor(private readonly productCategoryService: ProductCategoryService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
   @UsePipes(ValidationPipe)
   @UseInterceptors(FileInterceptor('file'))
@@ -31,7 +34,6 @@ export class ProductCategoryController {
     const data = await this.productCategoryService.create({ ...createProductCategoryDto, imageFile })
 
     return response.status(HttpStatus.CREATED).json({
-      statusCode: HttpStatus.CREATED,
       timestamp: new Date().toISOString(),
       path: '/product-category',
       result: Array(data).flat(),
@@ -48,7 +50,6 @@ export class ProductCategoryController {
     })
 
     return response.status(HttpStatus.OK).json({
-      statusCode: HttpStatus.OK,
       timestamp: new Date().toISOString(),
       path: '/product-category',
       result: Array(data).flat(),

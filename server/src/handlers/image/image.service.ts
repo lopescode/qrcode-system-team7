@@ -1,9 +1,9 @@
-import { ExceptionService } from '@/infra/exception/exception.service'
-import { IImage } from '@/modules/image/domain/image.interface'
-import { UploadImageDto } from '@/modules/image/dto/upload-image.dto'
 import { Injectable } from '@nestjs/common'
 import * as fs from 'fs'
 import * as path from 'path'
+import { ExceptionService } from '../exception/exception.service'
+import { IImage } from './domain/image.interface'
+import { UploadImageDto } from './dto/upload-image.dto'
 
 @Injectable()
 export class ImageService implements IImage {

@@ -1,40 +1,44 @@
 import { HttpRequestHelper } from "@/helpers/HTTPRequestHelper";
+import { JWTHelper } from "@/helpers/JWTHelper";
 import { type GetServerSidePropsContext } from "next";
 import {
+  Session,
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
+import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
-      accessToken: string;
+      access_token: string;
+      order_id: string;
     } & DefaultSession["user"];
   }
 }
 
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    async jwt({ token, user }: any) {
+    async jwt({ token, user }: { token: JWT; user: any }) {
       if (user) {
-        token.id = user.id;
-        token.accessToken = user.accessToken;
+        return { access_token: user.access_token };
       }
 
       return token;
     },
-    session({ session, token }: any) {
-      if (!session) {
-        console.error("No session passed to callback");
-      }
+    session({ session, token }: { session: Session; token: JWT }) {
+      const accessToken = String(token.access_token);
 
-      if (session.user) {
-        session.user.id = token.user.id;
-        session.user.accessToken = token.user.accessToken;
-      }
+      if (!accessToken) return session;
+
+      session.user.access_token = accessToken;
+      session.user.id = (JWTHelper.decodeToken(accessToken) as any).id;
+      session.user.order_id = (
+        JWTHelper.decodeToken(accessToken) as any
+      ).order_id;
 
       return session;
     },

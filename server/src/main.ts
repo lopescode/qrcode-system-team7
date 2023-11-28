@@ -3,8 +3,8 @@ import { NestExpressApplication } from '@nestjs/platform-express'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import * as path from 'path'
 import { AppModule } from './app.module'
-import { AllExceptionFilter } from './infra/filter/all.exception.filter'
-import { LoggerService } from './infra/logger/logger.service'
+import { LoggerService } from './handlers/logger/logger.service'
+import { AllExceptionFilter } from './infra/common/filter/all.exception.filter'
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)

@@ -1,11 +1,11 @@
-import { ExceptionModule } from '@/infra/exception/exception.module'
-import { PrismaModule } from '@/infra/prisma/prisma.module'
-import { AuthController } from '@/modules/auth/auth.controller'
-import { AuthService } from '@/modules/auth/auth.service'
-import { EncryptModule } from '@/modules/encrypt/encrypt.module'
-import { UserModule } from '@/modules/user/user.module'
+import { EncryptModule } from '@/handlers/encrypt/encrypt.module'
+import { ExceptionModule } from '@/handlers/exception/exception.module'
+import { PrismaModule } from '@/infra/database/prisma/prisma.module'
 import { Module, forwardRef } from '@nestjs/common'
 import { JwtModule } from '@nestjs/jwt'
+import { UserModule } from '../user/user.module'
+import { AuthController } from './auth.controller'
+import { AuthService } from './auth.service'
 
 @Module({
   imports: [

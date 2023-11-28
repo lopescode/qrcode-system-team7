@@ -2,17 +2,17 @@ import { ProductIngredientsForm } from "@/components/forms/ProductIngredientsFor
 import { Product } from "@/types/Api";
 import Modal from "react-modal";
 
-type TProductsIngredientsModalProps = {
+type TProductModalProps = {
   modalIsOpen: boolean;
   onRequestClose: () => void;
   product: Product;
 };
 
-export const ProductIngredientsModal = ({
+export const ProductModal = ({
   modalIsOpen,
   onRequestClose,
   product,
-}: TProductsIngredientsModalProps) => {
+}: TProductModalProps) => {
   return (
     <Modal
       isOpen={modalIsOpen}
@@ -30,7 +30,8 @@ export const ProductIngredientsModal = ({
           background: "#414244",
           display: "flex",
           flexDirection: "column",
-          padding: "0px",
+          padding: "20px",
+          borderRadius: "10px",
         },
       }}
       contentLabel="Service Modal"

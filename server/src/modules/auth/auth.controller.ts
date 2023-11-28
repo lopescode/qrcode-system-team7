@@ -14,7 +14,6 @@ export class AuthController {
     const data = await this.authService.signIn(signInDto)
 
     return response.status(HttpStatus.OK).json({
-      statusCode: HttpStatus.OK,
       timestamp: new Date().toISOString(),
       path: '/auth/sign-in',
       result: Array(data).flat(),
@@ -27,7 +26,6 @@ export class AuthController {
     const data = await this.authService.signUp(signUpDto)
 
     return response.status(HttpStatus.OK).json({
-      statusCode: HttpStatus.OK,
       timestamp: new Date().toISOString(),
       path: '/auth/sign-up',
       result: Array(data).flat(),

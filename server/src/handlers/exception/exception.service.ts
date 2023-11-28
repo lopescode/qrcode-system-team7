@@ -1,4 +1,3 @@
-import { IException, IFormatExceptionMessage } from '@/infra/exception/domain/exception.interface'
 import {
   BadRequestException,
   ConflictException,
@@ -8,6 +7,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common'
+import { IException, IFormatExceptionMessage } from './domain/exception.interface'
 
 @Injectable()
 export class ExceptionService implements IException {

@@ -111,7 +111,7 @@ export const SignUpForm = ({
       phoneNumber: getValues("phoneNumber"),
     });
 
-    if (response?.statusCode === 200) {
+    if (response?.result) {
       toast.success("Cadastro realizado com sucesso!");
       closeSignUpModal();
       openSignInModal();
@@ -119,7 +119,7 @@ export const SignUpForm = ({
     }
 
     toast.error(
-      response?.message ?? "Houve um erro ao cadastrar este usuário."
+      response?.error?.message ?? "Houve um erro ao cadastrar este usuário."
     );
   };
 

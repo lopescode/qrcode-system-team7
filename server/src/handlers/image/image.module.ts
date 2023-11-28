@@ -1,6 +1,6 @@
-import { ExceptionModule } from '@/infra/exception/exception.module'
-import { ImageService } from '@/modules/image/image.service'
 import { Module } from '@nestjs/common'
+import { ExceptionModule } from '../exception/exception.module'
+import { ImageService } from './image.service'
 
 @Module({
   imports: [ExceptionModule],

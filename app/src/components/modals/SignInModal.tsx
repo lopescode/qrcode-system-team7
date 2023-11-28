@@ -5,14 +5,14 @@ type TSignInModalProps = {
   modalIsOpen: boolean;
   onRequestClose: () => void;
   openSignUpModal: () => void;
-  openIngredientsModal: () => void;
+  openProductModal: () => void;
 };
 
 export const SignInModal = ({
   modalIsOpen,
   onRequestClose,
   openSignUpModal,
-  openIngredientsModal,
+  openProductModal,
 }: TSignInModalProps) => {
   return (
     <Modal
@@ -39,7 +39,7 @@ export const SignInModal = ({
     >
       <SignInForm
         openSignUpModal={openSignUpModal}
-        openIngredienteModal={openIngredientsModal}
+        openProductModal={openProductModal}
       />
     </Modal>
   );

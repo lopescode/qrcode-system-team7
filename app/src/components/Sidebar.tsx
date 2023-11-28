@@ -1,10 +1,8 @@
 import {
-  Icon24Hours,
   IconChevronRight,
   IconLock,
   IconLockOpen,
   IconMenu,
-  IconMenuDeep,
   IconMenuOrder,
   IconMoneybag,
   IconSettings,
@@ -133,26 +131,7 @@ export const Sidebar = () => {
       name: "Cardápio",
       panelName: "menu",
       icon: <IconMenu />,
-      children: [
-        {
-          name: "Ofertas",
-          panelName: "menu-oferts",
-          icon: <Icon24Hours />,
-          children: [],
-        },
-        {
-          name: "Categorias",
-          panelName: "menu-categories",
-          icon: <IconMenuDeep />,
-          children: [],
-        },
-        {
-          name: "Produtos",
-          panelName: "menu-products",
-          icon: <IconMenuOrder />,
-          children: [],
-        },
-      ],
+      children: [],
     },
     {
       name: "Pedidos",

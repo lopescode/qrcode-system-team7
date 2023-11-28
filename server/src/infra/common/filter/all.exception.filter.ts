@@ -1,4 +1,4 @@
-import { LoggerService } from '@/infra/logger/logger.service'
+import { LoggerService } from '@/handlers/logger/logger.service'
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common'
 
 interface IError {
@@ -21,12 +21,9 @@ export class AllExceptionFilter implements ExceptionFilter {
         : { message: (exception as Error).message, code_error: null }
 
     const responseData = {
-      ...{
-        statusCode: status,
-        timestamp: new Date().toISOString(),
-        path: request.url,
-      },
-      ...message,
+      timestamp: new Date().toISOString(),
+      path: request.url,
+      error: { ...message, statusCode: status },
     }
 
     this.logMessage(request, message, status, exception)

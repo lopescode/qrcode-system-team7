@@ -1,10 +1,10 @@
-import { ExceptionService } from '@/infra/exception/exception.service'
-import { PrismaService } from '@/infra/prisma/prisma.service'
-import { ImageService } from '@/modules/image/image.service'
-import { IProduct } from '@/modules/product/domain/product.interface'
-import { type CreateProductDto } from '@/modules/product/dto/create-product.dto'
+import { ExceptionService } from '@/handlers/exception/exception.service'
+import { ImageService } from '@/handlers/image/image.service'
+import { PrismaService } from '@/infra/database/prisma/prisma.service'
 import { Injectable } from '@nestjs/common'
 import { Product } from '@prisma/client'
+import { IProduct } from './domain/product.interface'
+import { CreateProductDto } from './dto/create-product.dto'
 
 @Injectable()
 export class ProductService implements IProduct {
@@ -93,6 +93,13 @@ export class ProductService implements IProduct {
     return await this.prismaService.product.findMany({
       where: {
         categoryId: params.where.categoryId,
+      },
+      include: {
+        ingredientOnProduct: {
+          include: {
+            ingredient: true,
+          },
+        },
       },
     })
   }
