@@ -40,6 +40,7 @@ export const SignInModal = ({
       <SignInForm
         openSignUpModal={openSignUpModal}
         openProductModal={openProductModal}
+        onRequestClose={onRequestClose}
       />
     </Modal>
   );

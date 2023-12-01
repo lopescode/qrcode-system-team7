@@ -5,7 +5,7 @@ import { SettingsPanel } from "@/components/panels/SettingsPanel";
 import { type NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useMemo } from "react";
+import { useLayoutEffect, useMemo } from "react";
 
 const panelMap = new Map<string, JSX.Element>([
   ["menu", <MenuPanel key={Math.random()} />],
@@ -20,6 +20,12 @@ const Index: NextPage = () => {
   const panelJSXElement = useMemo(() => {
     return panelMap.get(panel as string);
   }, [panel]);
+
+  useLayoutEffect(() => {
+    if (!panel) {
+      router.push("/?panel=menu");
+    }
+  });
 
   return (
     <>

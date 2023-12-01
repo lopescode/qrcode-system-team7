@@ -25,12 +25,13 @@ export const MenuPanel = () => {
   }, [session]);
 
   const handleProductClick = async (product: Product) => {
+    setSelectedProduct(product);
+
     if (!accessToken) {
       setSignInModalIsOpen(true);
       return;
     }
 
-    setSelectedProduct(product);
     setProductModalIsOpen(true);
   };
 

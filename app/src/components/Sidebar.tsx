@@ -179,6 +179,7 @@ export const Sidebar = () => {
               alt="Logo"
               width={50}
               height={50}
+              className="min-h-[50px] min-w-[50px]"
             ></Image>
           </Link>
 
@@ -233,8 +234,12 @@ export const Sidebar = () => {
             } gap-6 rounded-md px-4 py-2 transition hover:bg-white/20`}
             onClick={() => signOut({ redirect: true, callbackUrl: "/" })}
           >
-            <IconDoorExit />
-            <span className="font-bold text-white">Sair</span>
+            <i>
+              <IconDoorExit />
+            </i>
+            {sidebarConfig.open && (
+              <span className="font-bold text-white">Sair</span>
+            )}
           </button>
         </div>
       </div>
