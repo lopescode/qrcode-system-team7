@@ -1,7 +1,31 @@
-export type Customer = {
+export type User = {
   id: number;
   firstName: string;
   lastName: string;
+  addresses: UserAddress[];
+  phones: UserPhone[];
+};
+
+export type UserPhone = {
+  id: number;
+  countryCode: string;
+  areaCode: string;
+  phoneNumber: string;
+  userId: number;
+  isDefault: boolean;
+};
+
+export type UserAddress = {
+  id: number;
+  streetAddress: string;
+  streetNumber: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  complement: string;
+  isDefault: boolean;
 };
 
 export type ProductOnOrder = {
@@ -16,9 +40,9 @@ export type Order = {
   createdAt: string;
   price: string;
   paymentStatus: string;
-  customerId: number | null;
+  userId: number | null;
   tableId: number | null;
-  customer: Customer | null;
+  user: User | null;
   products: ProductOnOrder[];
 };
 
@@ -51,10 +75,4 @@ export type ProductIngredient = {
   id: number;
   name: string;
   description: string;
-};
-
-export type Table = {
-  id: number;
-  number: number;
-  isAvailable: boolean;
 };

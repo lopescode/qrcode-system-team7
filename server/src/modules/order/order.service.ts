@@ -3,18 +3,16 @@ import { PrismaService } from '@/infra/database/prisma/prisma.service'
 import { Injectable } from '@nestjs/common'
 import { Order, PaymentStatus } from '@prisma/client'
 import { IOrder } from './domain/order.interface'
-import { AddProductDto } from './dto/add-product.dto'
 import { CreateOrderDto } from './dto/create-order.dto'
-import { RemoveProductDto } from './dto/remove-product.dto'
 
 @Injectable()
 export class OrderService implements IOrder {
   constructor(private readonly prismaService: PrismaService, private readonly exceptionService: ExceptionService) {}
 
-  async addProduct(params: { where: { id: number }; data: AddProductDto }): Promise<Order> {
+  async addProduct(id: string, productId: string): Promise<Order> {
     const orderExists = await this.prismaService.order.findUnique({
       where: {
-        id: params.where.id,
+        id: Number(id),
       },
     })
 
@@ -26,7 +24,7 @@ export class OrderService implements IOrder {
 
     const productExists = await this.prismaService.product.findUnique({
       where: {
-        id: params.data.productId,
+        id: Number(productId),
       },
     })
 
@@ -36,37 +34,62 @@ export class OrderService implements IOrder {
       })
     }
 
-    return await this.prismaService.order.update({
+    const productAlreadyRegistered = await this.prismaService.productsOnOrder.findFirst({
       where: {
-        id: orderExists.id,
+        productId: Number(productId),
+        orderId: Number(id),
       },
-      data: {
-        products: {
-          connectOrCreate: {
+    })
+
+    let order = null
+    if (productAlreadyRegistered) {
+      order = await this.prismaService.order.update({
+        where: {
+          id: Number(id),
+        },
+        data: {
+          products: {
+            update: {
+              where: {
+                productId_orderId: {
+                  productId: productAlreadyRegistered.productId,
+                  orderId: productAlreadyRegistered.orderId,
+                },
+              },
+              data: {
+                quantity: productAlreadyRegistered.quantity + 1,
+              },
+            },
+          },
+        },
+      })
+    } else {
+      order = await this.prismaService.order.update({
+        where: {
+          id: Number(id),
+        },
+        data: {
+          products: {
             create: {
-              quantity: params.data.quantity,
+              quantity: 1,
               product: {
                 connect: {
-                  id: productExists.id,
+                  id: Number(productId),
                 },
               },
             },
-            where: {
-              productId_orderId: {
-                productId: productExists.id,
-                orderId: orderExists.id,
-              },
-            },
           },
         },
-      },
-    })
+      })
+    }
+
+    return await this.updatePrice(order.id)
   }
 
-  async removeProduct(params: { where: { id: number }; data: RemoveProductDto }): Promise<Order> {
+  async removeProduct(id: string, productId: string): Promise<Order> {
     const orderExists = await this.prismaService.order.findUnique({
       where: {
-        id: params.where.id,
+        id: Number(id),
       },
     })
 
@@ -78,7 +101,7 @@ export class OrderService implements IOrder {
 
     const productExists = await this.prismaService.product.findUnique({
       where: {
-        id: params.data.productId,
+        id: Number(productId),
       },
     })
 
@@ -88,20 +111,104 @@ export class OrderService implements IOrder {
       })
     }
 
-    return await this.prismaService.order.update({
+    const productAlreadyRegistered = await this.prismaService.productsOnOrder.findFirst({
       where: {
-        id: params.where.id,
+        productId: Number(productId),
+        orderId: Number(id),
       },
-      data: {
-        products: {
-          delete: {
-            quantity: params.data.quantity,
-            productId_orderId: {
-              productId: params.data.productId,
-              orderId: params.where.id,
+    })
+
+    if (!productAlreadyRegistered) {
+      this.exceptionService.notFoundException({
+        message: 'Produto não encontrado no pedido',
+      })
+    }
+
+    const currentQuantity = productAlreadyRegistered.quantity
+
+    let order = null
+
+    if (currentQuantity <= 1) {
+      order = await this.prismaService.order.update({
+        where: {
+          id: Number(id),
+        },
+        data: {
+          products: {
+            delete: {
+              productId_orderId: {
+                productId: productAlreadyRegistered.productId,
+                orderId: productAlreadyRegistered.orderId,
+              },
             },
           },
         },
+        include: {
+          products: true,
+        },
+      })
+    } else {
+      order = await this.prismaService.order.update({
+        where: {
+          id: Number(id),
+        },
+        data: {
+          products: {
+            update: {
+              where: {
+                productId_orderId: {
+                  productId: productAlreadyRegistered.productId,
+                  orderId: productAlreadyRegistered.orderId,
+                },
+              },
+              data: {
+                quantity: productAlreadyRegistered.quantity - 1,
+              },
+            },
+          },
+        },
+        include: {
+          products: true,
+        },
+      })
+    }
+
+    return await this.updatePrice(order.id)
+  }
+
+  async updatePrice(id: number): Promise<Order> {
+    const order = await this.prismaService.order.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        products: {
+          select: {
+            product: {
+              select: {
+                price: true,
+              },
+            },
+            quantity: true,
+          },
+        },
+      },
+    })
+
+    const products = order.products
+
+    let price = 0
+
+    products.forEach(product => {
+      price += product.quantity * Number(product.product.price)
+    })
+
+    return await this.prismaService.order.update({
+      where: {
+        id,
+      },
+      data: {
+        price: String(price),
       },
     })
   }

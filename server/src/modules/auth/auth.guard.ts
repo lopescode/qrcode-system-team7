@@ -20,11 +20,7 @@ export class AuthGuard implements CanActivate {
         secret: process.env.JWT_SECRET,
       })
 
-      const user = await this.userService.findOne({
-        where: {
-          id: Number(payload.id),
-        },
-      })
+      const user = await this.userService.findOne(payload.id)
 
       request['user'] = user
     } catch {

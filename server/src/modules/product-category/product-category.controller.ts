@@ -42,7 +42,6 @@ export class ProductCategoryController {
 
   @Get()
   async findAll(@Res() response: Response, @Query('includeProducts') includeProducts: boolean) {
-    console.log(includeProducts)
     const data = await this.productCategoryService.findAll({
       include: {
         products: includeProducts,

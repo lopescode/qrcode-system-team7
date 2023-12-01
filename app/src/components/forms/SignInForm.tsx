@@ -20,12 +20,7 @@ export const SignInForm = ({
       .min(11)
       .max(11)
       .matches(/^[0-9]+$/i, "CPF deve conter apenas números"),
-    password: yup
-      .string()
-      .min(6)
-      .max(12)
-      .required("Senha obrigatória")
-      .matches(/^[a-z0-9]+$/i),
+    password: yup.string().min(6).max(12).required("Senha obrigatória"),
   });
 
   const {
@@ -141,12 +136,6 @@ export const SignInForm = ({
         {errors.password && errors.password.type === "max" && (
           <span className="text-sm text-red-400">
             Senha deve ter no máximo 20 caracteres.
-          </span>
-        )}
-
-        {errors.password && errors.password.type === "matches" && (
-          <span className="text-sm text-red-400">
-            Senha deve conter apenas letras e números.
           </span>
         )}
       </div>

@@ -23,11 +23,8 @@ export const ProductIngredientsForm = ({
 
   const handleProductIngredientsSubmit = async () => {
     const response = await HttpRequestHelper.post(
-      `order/${session?.user.order_id}/add-product`,
-      {
-        productId: product.id,
-        quantity: 1,
-      },
+      `/order/${session?.user.order_id}/add-product/${product.id}`,
+      {},
       accessToken
     );
 

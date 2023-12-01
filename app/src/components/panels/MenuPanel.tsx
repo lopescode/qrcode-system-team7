@@ -37,7 +37,7 @@ export const MenuPanel = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       const response = await HttpRequestHelper.get(
-        "product-category?includeProducts=true"
+        "/product-category?includeProducts=true"
       );
 
       if (!response || !response.result) {

@@ -59,7 +59,7 @@ export const authOptions: NextAuthOptions = {
         if (!credentials) return;
         const { cpf, password } = credentials;
 
-        const response = await HttpRequestHelper.post("auth/sign-in", {
+        const response = await HttpRequestHelper.post("/auth/sign-in", {
           cpf,
           password,
         });

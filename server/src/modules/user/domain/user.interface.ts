@@ -1,5 +1,5 @@
 import { User } from '@prisma/client'
 
 export interface IUser {
-  findOne(params: { where: { id: number } }): Promise<Partial<User>>
+  findOne(id: string): Promise<Partial<User>>
 }

@@ -40,7 +40,7 @@ export abstract class HttpRequestHelper {
 
       return data;
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   }
 

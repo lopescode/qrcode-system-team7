@@ -1,12 +1,13 @@
 import {
   IconChevronRight,
+  IconDoorExit,
   IconLock,
   IconLockOpen,
   IconMenu,
   IconMenuOrder,
-  IconMoneybag,
   IconSettings,
 } from "@tabler/icons-react";
+import { signOut } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -139,18 +140,12 @@ export const Sidebar = () => {
       icon: <IconMenuOrder />,
       children: [],
     },
-    {
-      name: "Pagamento",
-      panelName: "payment",
-      icon: <IconMoneybag />,
-      children: [],
-    },
   ];
 
   const handlePanelChange = async (panelName: string) => {
     await router.push({
       pathname: router.pathname, // mantém o mesmo caminho
-      query: { ...router.query, panel: panelName },
+      query: { panel: panelName },
     });
   };
 
@@ -231,6 +226,15 @@ export const Sidebar = () => {
             {sidebarConfig.open && (
               <span className="font-bold text-white">Configurações</span>
             )}
+          </button>
+          <button
+            className={` flex w-full flex-row items-center ${
+              sidebarConfig.open ? "justify-start" : "justify-center"
+            } gap-6 rounded-md px-4 py-2 transition hover:bg-white/20`}
+            onClick={() => signOut({ redirect: true, callbackUrl: "/" })}
+          >
+            <IconDoorExit />
+            <span className="font-bold text-white">Sair</span>
           </button>
         </div>
       </div>

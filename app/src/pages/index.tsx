@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/Sidebar";
 import { MenuPanel } from "@/components/panels/MenuPanel";
 import { OrderPanel } from "@/components/panels/OrderPanel";
+import { SettingsPanel } from "@/components/panels/SettingsPanel";
 import { type NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -9,6 +10,7 @@ import { useMemo } from "react";
 const panelMap = new Map<string, JSX.Element>([
   ["menu", <MenuPanel key={Math.random()} />],
   ["order", <OrderPanel key={Math.random()} />],
+  ["settings", <SettingsPanel key={Math.random()} />],
 ]);
 
 const Index: NextPage = () => {

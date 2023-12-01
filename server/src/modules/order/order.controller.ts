@@ -14,8 +14,6 @@ import {
   ValidationPipe,
 } from '@nestjs/common'
 import { Response } from 'express'
-import { AddProductDto } from './dto/add-product.dto'
-import { RemoveProductDto } from './dto/remove-product.dto'
 
 @Controller('order')
 export class OrderController {
@@ -47,31 +45,25 @@ export class OrderController {
   }
 
   @UseGuards(AuthGuard)
-  @Post(':id/add-product')
-  async addProduct(@Res() response: Response, @Param('id') id: string, @Body() body: AddProductDto) {
-    const data = await this.orderService.addProduct({
-      where: { id: Number(id) },
-      data: body,
-    })
+  @Post(':id/add-product/:productId')
+  async addProduct(@Res() response: Response, @Param('id') id: string, @Param('productId') productId: string) {
+    const data = await this.orderService.addProduct(id, productId)
 
     return response.status(HttpStatus.OK).json({
       timeStamp: new Date().toISOString(),
-      path: `/order/${id}/add-product`,
+      path: `/order/${id}/add-product/${productId}`,
       result: Array(data).flat(),
     })
   }
 
   @UseGuards(AuthGuard)
-  @Post(':id/remove-product')
-  async removeProduct(@Res() response: Response, @Param('id') id: string, @Body() body: RemoveProductDto) {
-    const data = await this.orderService.removeProduct({
-      where: { id: Number(id) },
-      data: body,
-    })
+  @Post(':id/remove-product/:productId')
+  async removeProduct(@Res() response: Response, @Param('id') id: string, @Param('productId') productId: string) {
+    const data = await this.orderService.removeProduct(id, productId)
 
     return response.status(HttpStatus.OK).json({
       timeStamp: new Date().toISOString(),
-      path: `/order/${id}/remove-product`,
+      path: `/order/${id}/remove-product/${productId}`,
       result: Array(data).flat(),
     })
   }

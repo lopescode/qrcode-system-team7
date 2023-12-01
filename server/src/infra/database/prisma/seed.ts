@@ -1,5 +1,5 @@
-import { productCategoriesSeedList, productIngredientsSeedList, productSeedList } from '@/infra/common/constants/seed'
 import { PrismaClient } from '@prisma/client'
+import { productCategoriesSeedList, productIngredientsSeedList, productSeedList } from '../../common/constants/seed'
 
 const prisma = new PrismaClient()
 

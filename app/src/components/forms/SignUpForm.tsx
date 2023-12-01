@@ -95,7 +95,7 @@ export const SignUpForm = ({
   });
 
   const handleSubmitSignUp = async () => {
-    const response = await HttpRequestHelper.post("auth/sign-up", {
+    const response = await HttpRequestHelper.post("/auth/sign-up", {
       cpf: getValues("cpf"),
       password: TextHelper.sha256(getValues("password")),
       firstName: getValues("firstName"),

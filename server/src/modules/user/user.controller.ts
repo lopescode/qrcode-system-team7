@@ -10,9 +10,7 @@ export class UserController {
   @UseGuards(AuthGuard)
   @Get(':id')
   async findOne(@Res() response: Response, @Param('id') id: string) {
-    const data = await this.userService.findOne({
-      where: { id: Number(id) },
-    })
+    const data = await this.userService.findOne(id)
 
     return response.json({
       timeStamp: new Date().toISOString(),
